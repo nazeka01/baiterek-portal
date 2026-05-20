@@ -161,7 +161,7 @@ export interface ApplicationEvent {
 
 // Пользователь
 export interface User {
-  id: string;
+  id: string | number;
   iin?: string;
   bin?: string;
   fullName: string;
@@ -172,3 +172,81 @@ export interface User {
   position?: string;
   canSign: boolean;
 }
+
+export interface News {
+  Id: number;
+  Title: string;
+  TitleKz: string;
+  Content: string;
+  ContentKz: string;
+  Organization: string;
+  ImageUrl?: string;
+  CreatedAt: string;
+}
+
+export interface Article {
+  Id: number;
+  Title: string;
+  TitleKz: string;
+  Category: string;
+  CategoryKz: string;
+  Content: string;
+  ContentKz: string;
+  CreatedAt: string;
+}
+
+export interface Booking {
+  Id: number;
+  UserId: number;
+  UserName?: string;
+  Organization: string;
+  Date: string;
+  TimeSlot: string;
+  Topic: string;
+  Status: 'pending' | 'approved' | 'rejected' | 'completed';
+  CreatedAt: string;
+}
+
+export interface Notification {
+  Id: number;
+  UserId: number;
+  Title: string;
+  TitleKz: string;
+  Message: string;
+  MessageKz: string;
+  IsRead: number;
+  CreatedAt: string;
+}
+
+export interface AuditLog {
+  Id: number;
+  UserId: number;
+  UserName?: string;
+  Action: string;
+  EntityType: string;
+  EntityId: string;
+  IpAddress?: string;
+  CreatedAt: string;
+}
+
+export interface DocVersion {
+  Id: number;
+  ApplicationId: string;
+  DocFieldId: string;
+  Version: number;
+  FileName: string;
+  FileSize: number;
+  FileUrl: string;
+  UploadedBy: string;
+  CreatedAt: string;
+}
+
+export interface Comment {
+  Id: number;
+  ApplicationId: string;
+  UserId: number;
+  UserName: string;
+  Message: string;
+  CreatedAt: string;
+}
+
