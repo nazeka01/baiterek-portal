@@ -624,6 +624,7 @@ const App: React.FC = () => {
   const [stats, setStats] = useState({ applications: 0, users: 0, services: 5 });
   const [successId, setSuccessId] = useState('');
   const [activeOrg, setActiveOrg] = useState<typeof ORGANIZATIONS[0] | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Database Data States
   const [news, setNews] = useState<any[]>([]);
@@ -1309,7 +1310,7 @@ const App: React.FC = () => {
       <header className="app-header">
         <div className="header-left">
           {onBack && <button className="btn btn-sm btn-back-custom" onClick={onBack}>← {t('backBtn')}</button>}
-          <div className="logo" onClick={() => go('home')}>
+          <div className="logo" onClick={() => { go('home'); setMobileMenuOpen(false); }}>
             <div className="logo-mark">Б</div>
             <div>
               <div className="logo-name">BAITEREK</div>
@@ -1318,8 +1319,73 @@ const App: React.FC = () => {
           </div>
           {nav}
         </div>
-        <div className="header-right">{hdrRight}</div>
+        <div className="header-right">
+          {/* Mobile: show compact controls */}
+          <div className="hdr-right-mobile">
+            {langSwitcher}
+            {user && notificationBellCount > 0 && (
+              <button className="notif-bell-btn" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
+                🔔 <span className="notif-badge">{notifBadgeLabel}</span>
+              </button>
+            )}
+            <button
+              className="hamburger-btn"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label="Меню"
+            >
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+            </button>
+          </div>
+          {/* Desktop: full controls */}
+          <div className="hdr-right-desktop">
+            {hdrRight}
+          </div>
+        </div>
       </header>
+
+      {/* Mobile nav drawer */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <span style={{ fontWeight: 700, color: 'var(--bt-navy-900)' }}>Меню</span>
+              <button className="btn btn-xs btn-ghost" onClick={() => setMobileMenuOpen(false)}>✕</button>
+            </div>
+            {(['home','catalog','about','news','knowledge','contacts','vacancies'] as Screen[]).map(s => {
+              const labels: Record<string,string> = {
+                home: t('navHome'), catalog: t('navCatalog'),
+                about: lang === 'ru' ? 'О Холдинге' : 'Холдинг туралы',
+                news: t('navNews'), knowledge: t('navFAQ'),
+                contacts: t('navContacts'), vacancies: t('navVacancies')
+              };
+              return (
+                <button key={s} className={`mobile-nav-item ${screen === s ? 'active' : ''}`}
+                  onClick={() => { go(s); setMobileMenuOpen(false); }}>
+                  {labels[s]}
+                </button>
+              );
+            })}
+            <div className="mobile-nav-divider" />
+            {user ? (
+              <>
+                <button className="mobile-nav-item" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
+                  👤 {lang === 'ru' ? 'Личный кабинет' : 'Жеке кабинет'}
+                </button>
+                <button className="mobile-nav-item" style={{ color: 'var(--danger)' }} onClick={() => { onLogout(); setMobileMenuOpen(false); }}>
+                  {t('logout')}
+                </button>
+              </>
+            ) : (
+              <button className="mobile-nav-item mobile-nav-cta" onClick={() => { go('login'); setMobileMenuOpen(false); }}>
+                {t('login')} →
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="app-main-content">
         {breadcrumbs}
         {children}
