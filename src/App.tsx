@@ -1578,6 +1578,7 @@ const App: React.FC = () => {
         <VacanciesPage
           redirectCount={vacancyRedirectCount}
           onApply={handleVacancyClick}
+          lang={lang}
         />
       </CustomLayout>
     );
@@ -2240,20 +2241,56 @@ const OrgDetailsPage: React.FC<{
 };
 
 // ---- NEWS DETAILS ----
-const NewsDetailsPage: React.FC<{ newsItem: any; lang: string }> = ({ newsItem, lang }) => (
-  <div style={{ padding: '0 20px 40px' }}>
-    <div className="service-hero" style={{ background: '#1e293b' }}>
-      <span className="badge badge-blue">{newsItem.Organization}</span>
-      <h1 className="service-hero-title">{lang === 'ru' ? newsItem.Title : newsItem.TitleKz}</h1>
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '8px' }}>{new Date(newsItem.CreatedAt).toLocaleDateString()}</div>
+const ORG_COLORS: Record<string, string> = {
+  'БРК': 'linear-gradient(135deg,#0f3460,#16213e)',
+  'Банк Развития Казахстана': 'linear-gradient(135deg,#0f3460,#16213e)',
+  'Даму': 'linear-gradient(135deg,#134e4a,#065f46)',
+  'БРК Лизинг': 'linear-gradient(135deg,#1e1b4b,#312e81)',
+  'КазАгро': 'linear-gradient(135deg,#14532d,#166534)',
+  'Байтерек': 'linear-gradient(135deg,#1A3D8F,#2d5bbf)',
+  'default': 'linear-gradient(135deg,#1e293b,#0f172a)',
+};
+const getOrgGradient = (org: string) =>
+  Object.keys(ORG_COLORS).find(k => org?.includes(k))
+    ? ORG_COLORS[Object.keys(ORG_COLORS).find(k => org?.includes(k))!]
+    : ORG_COLORS.default;
+
+const getReadTime = (text: string) => Math.max(1, Math.ceil(text.length / 1200));
+
+const NewsDetailsPage: React.FC<{ newsItem: any; lang: string }> = ({ newsItem, lang }) => {
+  const content = lang === 'ru' ? newsItem.Content : (newsItem.ContentKz || newsItem.Content);
+  const title = lang === 'ru' ? newsItem.Title : (newsItem.TitleKz || newsItem.Title);
+  const date = new Date(newsItem.CreatedAt);
+  const readMin = getReadTime(content || '');
+
+  return (
+    <div style={{ paddingBottom: 60 }}>
+      <div className="service-hero" style={{ background: getOrgGradient(newsItem.Organization) }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          <span className="badge badge-blue">{newsItem.Organization}</span>
+          <span className="badge badge-gray" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>
+            📅 {date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+          <span className="badge badge-gray" style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}>
+            🕐 {readMin} {lang === 'ru' ? 'мин. чтения' : 'мин. оқу'}
+          </span>
+        </div>
+        <h1 className="service-hero-title" style={{ fontSize: 'clamp(1.3rem,4vw,2rem)', lineHeight: 1.35 }}>{title}</h1>
+      </div>
+      <div style={{ maxWidth: 760, margin: '32px auto', padding: '0 20px' }}>
+        <div className="detail-card" style={{ padding: '36px 40px', lineHeight: 1.85, borderTop: '3px solid var(--blue)' }}>
+          {(content || '').split('\n').filter(Boolean).map((para: string, i: number) => (
+            <p key={i} style={{ fontSize: 16, color: 'var(--text)', marginBottom: 16 }}>{para}</p>
+          ))}
+        </div>
+        <div style={{ marginTop: 20, padding: '12px 16px', background: 'var(--bg)', borderRadius: 10, border: '1px solid var(--border)', fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 16 }}>
+          <span>🏢 {newsItem.Organization}</span>
+          <span>📅 {date.toLocaleDateString('ru-RU')}</span>
+        </div>
+      </div>
     </div>
-    <div className="detail-card" style={{ maxWidth: 800, margin: '20px auto', padding: 40, lineHeight: 1.8 }}>
-      <p style={{ fontSize: 16, color: 'var(--text)' }}>
-        {lang === 'ru' ? newsItem.Content : newsItem.ContentKz}
-      </p>
-    </div>
-  </div>
-);
+  );
+};
 
 // ---- NEWS LIST PAGE ----
 const NewsListPage: React.FC<{
@@ -2268,13 +2305,17 @@ const NewsListPage: React.FC<{
 
   const filtered = news.filter(n => {
     const matchOrg = orgFilter === 'all' || n.Organization === orgFilter;
-    const title = lang === 'ru' ? n.Title : n.TitleKz;
-    const matchSearch = !search || title.toLowerCase().includes(search.toLowerCase());
+    const title = lang === 'ru' ? n.Title : (n.TitleKz || n.Title);
+    const matchSearch = !search || title?.toLowerCase().includes(search.toLowerCase());
     return matchOrg && matchSearch;
   });
 
+  const featured = filtered[0];
+  const rest = filtered.slice(1);
+
   return (
-    <div>
+    <div style={{ paddingBottom: 48 }}>
+      {/* Header */}
       <div className="catalog-header">
         <div className="catalog-title">{lang === 'ru' ? 'Новости холдинга «Байтерек»' : '«Бәйтерек» холдингінің жаңалықтары'}</div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
@@ -2286,34 +2327,121 @@ const NewsListPage: React.FC<{
         <div className="filter-chips">
           {orgs.map(org => (
             <button key={org} className={`filter-chip ${orgFilter === org ? 'active' : ''}`} onClick={() => setOrgFilter(org)}>
-              {org === 'all' ? (lang === 'ru' ? 'Все организации' : 'Барлық ұйымдар') : org}
+              {org === 'all' ? (lang === 'ru' ? `Все (${filtered.length})` : `Барлығы (${filtered.length})`) : org}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: '0 20px 40px' }}>
-        {filtered.length ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, marginTop: 20 }}>
-            {filtered.map(n => (
-              <div key={n.Id} className="cat-card" style={{ cursor: 'pointer' }} onClick={() => onSelectNews(n)}>
-                <div className="cat-card-top">
-                  <span className="badge badge-blue">{n.Organization}</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{new Date(n.CreatedAt).toLocaleDateString()}</span>
-                </div>
-                <div className="cat-card-title" style={{ marginTop: 10 }}>{lang === 'ru' ? n.Title : n.TitleKz}</div>
-                <div className="cat-card-desc">{(lang === 'ru' ? n.Content : n.ContentKz || n.Content || '').slice(0, 120)}...</div>
-                <div className="cat-card-footer">
-                  <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>{new Date(n.CreatedAt).toLocaleDateString()}</span>
-                  <span className="cat-card-cta">{lang === 'ru' ? 'Читать далее →' : 'Толығырақ →'}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
+      <div style={{ padding: '0 20px 40px', maxWidth: 1200, margin: '0 auto' }}>
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📰</div>
             {lang === 'ru' ? 'Новостей не найдено' : 'Жаңалықтар табылмады'}
           </div>
+        ) : (
+          <>
+            {/* Featured news */}
+            {featured && (
+              <div
+                onClick={() => onSelectNews(featured)}
+                style={{
+                  cursor: 'pointer',
+                  marginTop: 24,
+                  marginBottom: 28,
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  background: getOrgGradient(featured.Organization),
+                  padding: '36px 40px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  gap: 24,
+                  alignItems: 'center',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.26)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)'; }}
+              >
+                <div>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                    <span style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                      ⭐ {lang === 'ru' ? 'Главная новость' : 'Басты жаңалық'}
+                    </span>
+                    <span style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)', padding: '3px 10px', borderRadius: 20, fontSize: 11 }}>
+                      {featured.Organization}
+                    </span>
+                    <span style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)', padding: '3px 10px', borderRadius: 20, fontSize: 11 }}>
+                      {new Date(featured.CreatedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <h2 style={{ color: '#fff', margin: '0 0 12px', fontSize: 'clamp(1.1rem,3vw,1.5rem)', fontWeight: 700, lineHeight: 1.35 }}>
+                    {lang === 'ru' ? featured.Title : (featured.TitleKz || featured.Title)}
+                  </h2>
+                  <p style={{ color: 'rgba(255,255,255,0.72)', margin: 0, fontSize: 14, lineHeight: 1.65, maxWidth: 620 }}>
+                    {(lang === 'ru' ? featured.Content : (featured.ContentKz || featured.Content) || '').slice(0, 200)}...
+                  </p>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '14px 20px', color: '#fff', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', textAlign: 'center' }}>
+                  {lang === 'ru' ? 'Читать →' : 'Оқу →'}
+                  <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.7, marginTop: 4 }}>{getReadTime((lang === 'ru' ? featured.Content : featured.ContentKz) || '')} мин.</div>
+                </div>
+              </div>
+            )}
+
+            {/* News grid */}
+            {rest.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
+                {rest.map(n => {
+                  const title = lang === 'ru' ? n.Title : (n.TitleKz || n.Title);
+                  const content = lang === 'ru' ? n.Content : (n.ContentKz || n.Content);
+                  const date = new Date(n.CreatedAt);
+                  return (
+                    <div
+                      key={n.Id}
+                      onClick={() => onSelectNews(n)}
+                      style={{
+                        cursor: 'pointer',
+                        borderRadius: 14,
+                        overflow: 'hidden',
+                        background: 'var(--white)',
+                        border: '1px solid var(--border)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'transform 0.18s, box-shadow 0.18s',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ''; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
+                    >
+                      {/* Card color strip */}
+                      <div style={{ height: 5, background: getOrgGradient(n.Organization) }} />
+                      <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <span style={{ background: '#EFF6FF', color: '#1A3D8F', padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700 }}>{n.Organization}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            {date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                        <h3 style={{ margin: '0 0 10px', fontSize: 15, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.4 }}>
+                          {title}
+                        </h3>
+                        <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, flex: 1 }}>
+                          {(content || '').slice(0, 110)}...
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>🕐 {getReadTime(content || '')} мин.</span>
+                          <span style={{ color: 'var(--blue)', fontSize: 13, fontWeight: 600 }}>
+                            {lang === 'ru' ? 'Читать далее →' : 'Толығырақ →'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -2335,16 +2463,12 @@ const KnowledgePage: React.FC<{
     return title.toLowerCase().includes(searchQuery.toLowerCase()) || content.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const downloadMockTemplate = (name: string) => {
-    const blob = new Blob([`Это демонстрационный шаблон для файла: ${name}. Заполните необходимые сведения.`], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = name;
-    link.click();
-    URL.revokeObjectURL(url);
-    alert(`Шаблон '${name}' сгенерирован и скачан!`);
-  };
+  const TEMPLATES = [
+    { icon: '📄', name: lang === 'ru' ? 'Устав компании' : 'Компания жарғысы', file: '/templates/Шаблон_Устава.rtf', size: '14 КБ' },
+    { icon: '📊', name: lang === 'ru' ? 'Бизнес-план проекта' : 'Жобаның бизнес-жоспары', file: '/templates/Бизнес_План.rtf', size: '18 КБ' },
+    { icon: '💰', name: lang === 'ru' ? 'Финансовая отчётность' : 'Қаржылық есептілік', file: '/templates/Финансовая_Отчетность.rtf', size: '16 КБ' },
+    { icon: '📝', name: lang === 'ru' ? 'Заявление на финансирование' : 'Қаржыландыру туралы өтініш', file: '/templates/Заявление_на_финансирование.rtf', size: '12 КБ' },
+  ];
 
   return (
     <div style={{ padding: '0 20px 40px' }}>
@@ -2391,18 +2515,37 @@ const KnowledgePage: React.FC<{
 
         <div className="detail-card">
           <h3>{lang === 'ru' ? 'Шаблоны документов' : 'Құжаттар үлгілері'}</h3>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>{lang === 'ru' ? 'Скачайте бланки для заполнения и прикрепите их в форме заявки.' : 'Толтыруға арналған бланкілерді жүктеп алыңыз және өтінім беру формасына тіркеңіз.'}</p>
-          <ul className="download-templates-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <li onClick={() => downloadMockTemplate('Шаблон_Устава.docx')} style={{ cursor: 'pointer', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--white)' }}>
-              <span>📄</span> <div><strong>Устав компании.docx</strong><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Размер: 24 КБ</div></div>
-            </li>
-            <li onClick={() => downloadMockTemplate('Бизнес_План_Проекта.docx')} style={{ cursor: 'pointer', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--white)' }}>
-              <span>📄</span> <div><strong>Бизнес-план.docx</strong><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Размер: 120 КБ</div></div>
-            </li>
-            <li onClick={() => downloadMockTemplate('Финансовая_Отчетность.xlsx')} style={{ cursor: 'pointer', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--white)' }}>
-              <span>📊</span> <div><strong>Финотчетность.xlsx</strong><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Размер: 84 КБ</div></div>
-            </li>
-          </ul>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
+            {lang === 'ru' ? 'Скачайте официальные бланки и заполните перед подачей заявки.' : 'Ресми бланкілерді жүктеп алыңыз және өтінім берер алдында толтырыңыз.'}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {TEMPLATES.map(t => (
+              <a
+                key={t.file}
+                href={t.file}
+                download
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 14px', border: '1px solid var(--border)',
+                  borderRadius: 10, background: 'var(--bg)',
+                  textDecoration: 'none', color: 'var(--ink)',
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#EFF6FF'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--blue)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--bg)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border)'; }}
+              >
+                <span style={{ fontSize: 22 }}>{t.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{t.name}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>RTF · {t.size}</div>
+                </div>
+                <span style={{ fontSize: 11, color: 'var(--blue)', fontWeight: 600 }}>⬇ {lang === 'ru' ? 'Скачать' : 'Жүктеу'}</span>
+              </a>
+            ))}
+          </div>
+          <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 12 }}>
+            {lang === 'ru' ? '* Файлы в формате RTF, открываются в Word, LibreOffice' : '* RTF форматындағы файлдар, Word, LibreOffice-те ашылады'}
+          </p>
         </div>
       </div>
     </div>
@@ -3637,47 +3780,169 @@ const ContactsPage: React.FC<{
 };
 
 // ---- VACANCIES PAGE ----
-const VacanciesPage: React.FC<{ redirectCount: number | null; onApply: (title: string) => void }> = ({ redirectCount, onApply }) => {
+const VacanciesPage: React.FC<{ redirectCount: number | null; onApply: (title: string) => void; lang?: string }> = ({ redirectCount, onApply, lang = 'ru' }) => {
+  const ru = lang === 'ru';
   const list = [
-    { title: 'Главный аналитик департамента кредитования', org: 'Банк Развития Казахстана', salary: 'от 450 000 ₸', experience: '3-6 лет' },
-    { title: 'Старший менеджер Департамента субсидирования', org: 'Даму', salary: 'от 380 000 ₸', experience: '1-3 года' },
-    { title: 'Юрисконсульт по сопровождению лизинговых сделок', org: 'БРК Лизинг', salary: 'По договоренности', experience: 'более 5 лет' },
-    { title: 'Главный специалист Департамента информационных технологий', org: 'Холдинг «Байтерек»', salary: 'от 550 000 ₸', experience: '3-6 лет' }
+    {
+      title: 'Главный аналитик департамента кредитования',
+      titleKz: 'Несиелеу департаментінің бас талдаушысы',
+      org: 'Банк Развития Казахстана',
+      salary: 'от 450 000 ₸',
+      experience: ru ? '3-6 лет' : '3-6 жыл',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Астана',
+      url: 'https://hh.kz/search/vacancy?text=%D0%91%D0%B0%D0%BD%D0%BA+%D0%A0%D0%B0%D0%B7%D0%B2%D0%B8%D1%82%D0%B8%D1%8F+%D0%9A%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D1%82%D0%B0%D0%BD%D0%B0&area=160',
+    },
+    {
+      title: 'Старший менеджер Департамента субсидирования',
+      titleKz: 'Субсидиялау департаментінің аға менеджері',
+      org: 'Даму',
+      salary: 'от 380 000 ₸',
+      experience: ru ? '1-3 года' : '1-3 жыл',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Алматы',
+      url: 'https://hh.kz/search/vacancy?text=%D0%94%D0%B0%D0%BC%D1%83&area=160',
+    },
+    {
+      title: 'Юрисконсульт по сопровождению лизинговых сделок',
+      titleKz: 'Лизингтік мәмілелерді сүйемелдеу жөніндегі заңгер',
+      org: 'БРК Лизинг',
+      salary: ru ? 'По договорённости' : 'Келісім бойынша',
+      experience: ru ? 'более 5 лет' : '5 жылдан астам',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Астана',
+      url: 'https://hh.kz/search/vacancy?text=%D0%BB%D0%B8%D0%B7%D0%B8%D0%BD%D0%B3+%D1%8E%D1%80%D0%B8%D1%81%D1%82&area=160',
+    },
+    {
+      title: 'Главный специалист Департамента информационных технологий',
+      titleKz: 'Ақпараттық технологиялар департаментінің бас маманы',
+      org: 'Холдинг «Байтерек»',
+      salary: 'от 550 000 ₸',
+      experience: ru ? '3-6 лет' : '3-6 жыл',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Астана',
+      url: 'https://hh.kz/search/vacancy?text=%D0%91%D0%B0%D0%B9%D1%82%D0%B5%D1%80%D0%B5%D0%BA+IT&area=160',
+    },
+    {
+      title: 'Риск-менеджер (кредитный портфель)',
+      titleKz: 'Тәуекел-менеджер (несиелік портфель)',
+      org: 'Банк Развития Казахстана',
+      salary: 'от 500 000 ₸',
+      experience: ru ? '3-6 лет' : '3-6 жыл',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Астана',
+      url: 'https://hh.kz/search/vacancy?text=%D1%80%D0%B8%D1%81%D0%BA+%D0%BC%D0%B5%D0%BD%D0%B5%D0%B4%D0%B6%D0%B5%D1%80+%D0%B1%D0%B0%D0%BD%D0%BA&area=160',
+    },
+    {
+      title: 'Специалист по работе с клиентами МСБ',
+      titleKz: 'ШОБ клиенттерімен жұмыс жөніндегі маман',
+      org: 'Даму',
+      salary: 'от 280 000 ₸',
+      experience: ru ? '1-3 года' : '1-3 жыл',
+      type: ru ? 'Полная занятость' : 'Толық жұмыс уақыты',
+      city: 'Алматы / Астана',
+      url: 'https://hh.kz/search/vacancy?text=%D0%94%D0%B0%D0%BC%D1%83+%D0%9C%D0%A1%D0%91&area=160',
+    },
   ];
 
+  const orgColors: Record<string, string> = {
+    'БРК': '#0f3460', 'Банк Развития': '#0f3460',
+    'Даму': '#065f46', 'Лизинг': '#312e81',
+    'Байтерек': '#1A3D8F',
+  };
+  const getOrgColor = (org: string) =>
+    Object.keys(orgColors).find(k => org.includes(k)) ? orgColors[Object.keys(orgColors).find(k => org.includes(k))!] : '#1e293b';
+
   return (
-    <div style={{ padding: '0 20px 40px' }}>
-      <div className="service-hero" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
-        <h1 className="service-hero-title">Карьера в группе компаний Байтерек</h1>
-        <p className="service-hero-desc">Присоединяйтесь к команде профессионалов, создающих будущее финансовой и промышленной экосистемы Казахстана.</p>
+    <div style={{ paddingBottom: 60 }}>
+      <div className="service-hero" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1A3D8F 100%)' }}>
+        <h1 className="service-hero-title">{ru ? 'Карьера в группе компаний Байтерек' : 'Байтерек компаниялар тобында мансап'}</h1>
+        <p className="service-hero-desc">{ru ? 'Присоединяйтесь к команде профессионалов, создающих будущее финансовой экосистемы Казахстана.' : 'Қазақстанның қаржылық экожүйесінің болашағын қалыптастыратын мамандар командасына қосылыңыз.'}</p>
+        <div style={{ display: 'flex', gap: 20, marginTop: 20, flexWrap: 'wrap' }}>
+          {[
+            { val: list.length.toString(), label: ru ? 'открытых вакансий' : 'ашық бос орын' },
+            { val: '6', label: ru ? 'организаций' : 'ұйым' },
+            { val: ru ? 'Астана / Алматы' : 'Астана / Алматы', label: ru ? 'города' : 'қалалар' },
+          ].map(f => (
+            <div key={f.val} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 20px' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff' }}>{f.val}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>{f.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ maxWidth: 800, margin: '20px auto' }}>
-        <h3>Актуальные вакансии ({list.length})</h3>
-        
+      <div style={{ maxWidth: 860, margin: '24px auto', padding: '0 20px' }}>
         {redirectCount !== null && (
-          <div className="autofill-banner" style={{ background: 'var(--warning-bg)', border: '1px solid #fcd34d', color: 'var(--warning)', marginTop: 14 }}>
+          <div className="autofill-banner" style={{ background: '#fffbeb', border: '1px solid #fcd34d', color: '#92400e', marginBottom: 20 }}>
             <span>⚠️</span>
             <div>
-              <strong>Внимание! Вы перенаправляетесь на внешний рекрутинговый портал qyzmet.kz.</strong>
-              <div style={{ fontSize: 11, marginTop: 4 }}>Перенаправление произойдет автоматически через: {redirectCount} сек.</div>
+              <strong>{ru ? 'Перенаправление на hh.kz' : 'hh.kz сайтына бағыттау'}</strong>
+              <div style={{ fontSize: 11, marginTop: 4 }}>{ru ? `Автоматически через: ${redirectCount} сек.` : `Автоматты түрде: ${redirectCount} сек.`}</div>
             </div>
           </div>
         )}
 
-        <div className="news-list" style={{ marginTop: 14 }}>
+        <h3 style={{ marginBottom: 16, fontSize: 17 }}>
+          {ru ? `Актуальные вакансии (${list.length})` : `Өзекті бос орындар (${list.length})`}
+        </h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {list.map(v => (
-            <div key={v.title} className="news-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <span className="badge badge-blue" style={{ marginBottom: 6 }}>{v.org}</span>
-                <h4 style={{ fontSize: 15, fontWeight: 700 }}>{v.title}</h4>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                  Опыт: <strong>{v.experience}</strong> | ЗП: <strong>{v.salary}</strong>
+            <div
+              key={v.title}
+              style={{
+                borderRadius: 14, border: '1px solid var(--border)',
+                background: 'var(--white)', overflow: 'hidden',
+                display: 'flex', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              }}
+            >
+              {/* Org color strip */}
+              <div style={{ width: 5, background: getOrgColor(v.org), flexShrink: 0 }} />
+              <div style={{ padding: '16px 20px', flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                    <span style={{ background: '#EFF6FF', color: getOrgColor(v.org), padding: '2px 9px', borderRadius: 20, fontSize: 11, fontWeight: 600 }}>{v.org}</span>
+                    <span style={{ background: '#F0FDF4', color: '#166534', padding: '2px 9px', borderRadius: 20, fontSize: 11 }}>📍 {v.city}</span>
+                    <span style={{ background: '#F5F3FF', color: '#5b21b6', padding: '2px 9px', borderRadius: 20, fontSize: 11 }}>{v.type}</span>
+                  </div>
+                  <h4 style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.35 }}>
+                    {ru ? v.title : v.titleKz}
+                  </h4>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    💼 {ru ? 'Опыт' : 'Тәжірибе'}: <strong>{v.experience}</strong>
+                    &nbsp;·&nbsp;
+                    💰 <strong style={{ color: '#166534' }}>{v.salary}</strong>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                  <a
+                    href={v.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding: '9px 18px', borderRadius: 10,
+                      background: 'linear-gradient(135deg,#1A3D8F,#2d5bbf)',
+                      color: '#fff', fontWeight: 600, fontSize: 13,
+                      textDecoration: 'none', whiteSpace: 'nowrap',
+                      display: 'inline-block',
+                    }}
+                  >
+                    {ru ? 'Откликнуться →' : 'Жауап беру →'}
+                  </a>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>hh.kz</span>
                 </div>
               </div>
-              <button className="btn btn-primary btn-sm" onClick={() => onApply(v.title)}>Откликнуться →</button>
             </div>
           ))}
+        </div>
+
+        <div style={{ marginTop: 28, padding: '18px 20px', borderRadius: 12, background: '#F0F9FF', border: '1px solid #BAE6FD', display: 'flex', gap: 14, alignItems: 'center' }}>
+          <span style={{ fontSize: 28 }}>🔔</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{ru ? 'Не нашли подходящую вакансию?' : 'Сәйкес бос орын таппадыңыз ба?'}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{ru ? 'Все актуальные вакансии холдинга размещены на ' : 'Холдингтің барлық өзекті бос орындары '}<a href="https://hh.kz/employer/3927?hhtmFrom=vacancy_search_list" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 600 }}>hh.kz</a>{ru ? ' и ' : ' және '}<a href="https://qyzmet.gov.kz" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', fontWeight: 600 }}>qyzmet.gov.kz</a>{ru ? '.' : ' сайттарында орналастырылған.'}</div>
+          </div>
         </div>
       </div>
     </div>
