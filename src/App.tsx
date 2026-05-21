@@ -449,10 +449,10 @@ const LEASING_SCHEMA: SchemaStep[] = [
     title: 'Документы',
     titleKz: 'Құжаттар',
     fields: [
-      { id: 'doc1', type: 'file', label: 'Устав компании', labelKz: 'Компания жарғысы', required: true, width: 'full' },
-      { id: 'doc2', type: 'file', label: 'Свидетельство о государственной регистрации', labelKz: 'Мемлекеттік тіркеу туралы куәлік', required: true, width: 'full' },
-      { id: 'doc3', type: 'file', label: 'Финансовая отчётность за последние 2 года', labelKz: 'Соңғы 2 жылдағы қаржылық есептілік', required: true, width: 'full' },
-      { id: 'doc4', type: 'file', label: 'Бизнес-план проекта', labelKz: 'Жобаның бизнес-жоспары', required: true, width: 'full' },
+      { id: 'doc1', type: 'file', label: 'Устав компании', labelKz: 'Компания жарғысы', required: false, width: 'full' },
+      { id: 'doc2', type: 'file', label: 'Свидетельство о государственной регистрации', labelKz: 'Мемлекеттік тіркеу туралы куәлік', required: false, width: 'full' },
+      { id: 'doc3', type: 'file', label: 'Финансовая отчётность за последние 2 года', labelKz: 'Соңғы 2 жылдағы қаржылық есептілік', required: false, width: 'full' },
+      { id: 'doc4', type: 'file', label: 'Бизнес-план проекта', labelKz: 'Жобаның бизнес-жоспары', required: false, width: 'full' },
     ]
   }
 ];
@@ -2842,6 +2842,19 @@ const AppFlow: React.FC<{
           <h2 className="step-title-h">{lang === 'ru' ? curStep.title : curStep.titleKz || curStep.title}</h2>
           {stepIdx === 0 && <p className="step-desc-p">Данные компании заполняются автоматически из eGov по введённому БИН</p>}
           {autofill && <div className="autofill-banner"><div className="spinner" />Загрузка данных из eGov...</div>}
+          {curStep.fields.some(f => f.type === 'file') && (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#1e40af', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span>ℹ️</span>
+              <div>
+                <strong>{lang === 'ru' ? 'Документы необязательны' : 'Құжаттар міндетті емес'}</strong>
+                <div style={{ fontWeight: 400, marginTop: 2, opacity: 0.85 }}>
+                  {lang === 'ru'
+                    ? 'Вы можете подать заявку без файлов — прикрепить документы можно будет позже в личном кабинете.'
+                    : 'Файлсыз өтінім бере аласыз — құжаттарды кейінірек жеке кабинетте тіркеуге болады.'}
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="fields-grid">
             {curStep.fields.filter(f => isVis(f, computed)).map(f => (
@@ -2894,14 +2907,26 @@ const FieldInput: React.FC<{ field: SchemaField; value: unknown; onChange: (v: u
       ) : field.type === 'textarea' ? (
         <textarea className="form-control textarea" value={str} rows={4} placeholder="Опишите проект..." onChange={e => onChange(e.target.value)} />
       ) : field.type === 'file' ? (
-        <div className="file-upload">
-          <span style={{ fontSize: 20 }}>📎</span>
-          <div><div style={{ fontSize: 13, fontWeight: 500 }}>Нажмите для загрузки</div><div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>PDF · до 10 МБ</div></div>
-          <input type="file" onChange={(e: any) => {
-            const f = e.target.files[0];
-            if (f) onChange(f.name);
-          }} />
-          {str && <div style={{ fontSize: 12, color: 'var(--success)', marginTop: 4 }}>Загружен: {str}</div>}
+        <div>
+          <div className="file-upload" style={{ position: 'relative' }}>
+            <span style={{ fontSize: 20 }}>📎</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500 }}>{str ? `✅ ${str}` : (lang === 'ru' ? 'Нажмите для загрузки' : 'Жүктеу үшін басыңыз')}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>PDF, DOC, JPG · {lang === 'ru' ? 'до 10 МБ' : '10 МБ дейін'} · {lang === 'ru' ? 'необязательно' : 'міндетті емес'}</div>
+            </div>
+            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e: any) => {
+              const f = e.target.files[0];
+              if (f) onChange(f.name);
+            }} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+          </div>
+          {!str && (
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>💡</span>
+              {lang === 'ru'
+                ? 'Документ можно прикрепить позже — заявка будет принята без файлов'
+                : 'Құжатты кейінірек тіркеуге болады — өтінім файлсыз да қабылданады'}
+            </div>
+          )}
         </div>
       ) : field.type === 'currency' ? (
         <div className="currency-wrap">
