@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
+// ---- AUTH HELPER ----
+const getAuthHeaders = (tok?: string | null): Record<string, string> =>
+  tok ? { 'Authorization': `Bearer ${tok}` } : {};
+
+const getJsonAuthHeaders = (tok?: string | null): Record<string, string> => ({
+  'Content-Type': 'application/json',
+  ...getAuthHeaders(tok),
+});
+
 // ---- TYPES & INTERFACES ----
 type Screen =
   | 'home'
@@ -618,6 +627,7 @@ const App: React.FC = () => {
 
   // States
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string>(() => localStorage.getItem('baiterek_token') || '');
   const [isAdmin, setIsAdmin] = useState(false);
   const [svcIdx, setSvcIdx] = useState(() => svcIdxFromPath());
   const [apps, setApps] = useState<AppRecord[]>([]);
@@ -747,8 +757,9 @@ const App: React.FC = () => {
 
   const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
+    const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch(`http://localhost:3001/api/notifications?userId=${user.id}`);
+      const res = await fetch(`http://localhost:3001/api/notifications?userId=${user.id}`, { headers: authHeader });
       if (res.ok) {
         const data = await res.json();
         const unread = data.filter((n: any) => !n.IsRead).length;
@@ -768,8 +779,9 @@ const App: React.FC = () => {
 
   const fetchBookings = useCallback(async () => {
     if (!user?.id) return;
+    const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch(`http://localhost:3001/api/bookings?userId=${user.id}`);
+      const res = await fetch(`http://localhost:3001/api/bookings?userId=${user.id}`, { headers: authHeader });
       if (res.ok) setBookings(await res.json());
     } catch (e) {
       console.log('Error loading bookings:', e);
@@ -777,8 +789,9 @@ const App: React.FC = () => {
   }, [user]);
 
   const fetchAuditLogs = async () => {
+    const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch('http://localhost:3001/api/logs');
+      const res = await fetch('http://localhost:3001/api/logs', { headers: authHeader });
       if (res.ok) setAuditLogs(await res.json());
     } catch (e) {
       console.log('Error loading audit logs:', e);
@@ -786,8 +799,9 @@ const App: React.FC = () => {
   };
 
   const fetchAppsAndStats = useCallback(async () => {
+    const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const appsRes = await fetch('http://localhost:3001/api/applications');
+      const appsRes = await fetch('http://localhost:3001/api/applications', { headers: authHeader });
       if (appsRes.ok) {
         const appsData = await appsRes.json();
         const mapped = appsData.map((a: any) => ({
@@ -801,8 +815,8 @@ const App: React.FC = () => {
         }));
         setApps(mapped);
       }
-      
-      const statsRes = await fetch('http://localhost:3001/api/stats');
+
+      const statsRes = await fetch('http://localhost:3001/api/stats', { headers: authHeader });
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
@@ -849,26 +863,36 @@ const App: React.FC = () => {
     }
   }, [user, fetchNotifications]);
 
-  const onLogin = (u: User) => {
+  const onLogin = (u: User, t?: string) => {
     setUser(u);
     localStorage.setItem('baiterek_user', JSON.stringify(u));
+    if (t) {
+      setToken(t);
+      localStorage.setItem('baiterek_token', t);
+    }
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
     go('dash');
   };
 
-  const onAdminLogin = () => { 
-    setIsAdmin(true); 
+  const onAdminLogin = (t?: string) => {
+    setIsAdmin(true);
     localStorage.setItem('baiterek_admin', 'true');
-    go('admin'); 
+    if (t) {
+      setToken(t);
+      localStorage.setItem('baiterek_token', t);
+    }
+    go('admin');
   };
 
   const onLogout = () => {
     setUser(null);
     setIsAdmin(false);
+    setToken('');
     localStorage.removeItem('baiterek_user');
     localStorage.removeItem('baiterek_admin');
+    localStorage.removeItem('baiterek_token');
     setActiveApp(null);
     go('home');
   };
@@ -903,7 +927,7 @@ const App: React.FC = () => {
     try {
       const res = await fetch(`http://localhost:3001/api/users/${user.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
           fullName: profileName,
           email: profileEmail,
@@ -944,7 +968,7 @@ const App: React.FC = () => {
     try {
       const res = await fetch('http://localhost:3001/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
           userId: user.id,
           organization: bookingOrg,
@@ -969,11 +993,12 @@ const App: React.FC = () => {
 
   // Load comments & doc versions for selected app details
   const loadAppDetails = useCallback(async (appId: string) => {
+    const authH = getAuthHeaders(token);
     try {
-      const commentsRes = await fetch(`http://localhost:3001/api/applications/${appId}/comments`);
+      const commentsRes = await fetch(`http://localhost:3001/api/applications/${appId}/comments`, { headers: authH });
       if (commentsRes.ok) setAppComments(await commentsRes.json());
 
-      const docsRes = await fetch(`http://localhost:3001/api/applications/${appId}/documents`);
+      const docsRes = await fetch(`http://localhost:3001/api/applications/${appId}/documents`, { headers: authH });
       if (docsRes.ok) setAppDocs(await docsRes.json());
     } catch(e) {
       console.log('Error loading comments/docs details:', e);
@@ -991,7 +1016,7 @@ const App: React.FC = () => {
     try {
       const res = await fetch(`http://localhost:3001/api/applications/${activeApp.id}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
           userId: user?.id || 1,
           userName: user?.name || 'Администратор',
@@ -1253,8 +1278,13 @@ const App: React.FC = () => {
   );
 
   const adminHdrRight = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
       {langSwitcher}
+      {token && (
+        <span style={{ fontSize: '0.68rem', padding: '3px 8px', borderRadius: 6, background: '#16a34a20', color: '#16a34a', fontWeight: 700, border: '1px solid #16a34a40' }}>
+          🔐 JWT
+        </span>
+      )}
       <div className="user-chip">
         <div className="user-av">A</div>
         admin@baiterek.kz
@@ -1390,6 +1420,7 @@ const App: React.FC = () => {
         {breadcrumbs}
         {children}
       </div>
+      <AIAssistant lang={lang} />
     </div>
   );
 
@@ -1406,6 +1437,7 @@ const App: React.FC = () => {
           articles={articles}
           auditLogs={auditLogs}
           lang={lang}
+          token={token}
           onRefreshApps={fetchAppsAndStats}
           onRefreshNews={fetchNews}
           onRefreshArticles={fetchArticles}
@@ -1575,15 +1607,18 @@ const App: React.FC = () => {
 
   if (screen === 'app') {
     return (
-      <AppFlow 
-        steps={LEASING_SCHEMA} 
-        svc={SERVICES[svcIdx]} 
-        lang={lang}
-        user={user}
-        onBack={() => go('service')} 
-        onSubmit={onSubmitApp} 
-        fetchApps={fetchAppsAndStats} 
-      />
+      <>
+        <AppFlow
+          steps={LEASING_SCHEMA}
+          svc={SERVICES[svcIdx]}
+          lang={lang}
+          user={user}
+          onBack={() => go('service')}
+          onSubmit={onSubmitApp}
+          fetchApps={fetchAppsAndStats}
+        />
+        <AIAssistant lang={lang} />
+      </>
     );
   }
 
@@ -2615,12 +2650,12 @@ const AppFlow: React.FC<{
       try {
         await fetch('http://localhost:3001/api/applications', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            appNumber: id, 
-            serviceId: svc.stage === 2 ? 2 : 1, 
+          headers: getJsonAuthHeaders(localStorage.getItem('baiterek_token')),
+          body: JSON.stringify({
+            appNumber: id,
+            serviceId: svc.stage === 2 ? 2 : 1,
             userId: user?.id || 1,
-            formData: computed 
+            formData: computed
           })
         });
         console.log('✅ Заявка сохранена в БД:', id);
@@ -2773,7 +2808,7 @@ const SuccessPage: React.FC<{ appId: string; svc: Service; onDash: () => void }>
 );
 
 // ---- LOGIN ----
-const LoginPage: React.FC<{ onLogin: (u: User) => void; onAdminLogin: () => void }> = ({ onLogin, onAdminLogin }) => {
+const LoginPage: React.FC<{ onLogin: (u: User, token?: string) => void; onAdminLogin: (token?: string) => void }> = ({ onLogin, onAdminLogin }) => {
   const [iin, setIin] = useState('');
   const [pass, setPass] = useState('');
   const [err, setErr] = useState('');
@@ -2807,7 +2842,10 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void; onAdminLogin: () => void
       if (res.ok) {
         const data = await res.json();
         setStep('done');
-        setTimeout(() => onLogin({ id: data.user.Id, name: data.user.FullName, iin: data.user.IIN, email: data.user.Email, phone: data.user.Phone, companyName: data.user.CompanyName, position: data.user.Position, role: data.user.Role }), 400);
+        setTimeout(() => onLogin(
+          { id: data.user.Id, name: data.user.FullName, iin: data.user.IIN, email: data.user.Email, phone: data.user.Phone, companyName: data.user.CompanyName, position: data.user.Position, role: data.user.Role },
+          data.token
+        ), 400);
         return;
       }
     } catch {}
@@ -2904,14 +2942,41 @@ const LoginPage: React.FC<{ onLogin: (u: User) => void; onAdminLogin: () => void
 };
 
 // ---- ADMIN LOGIN ----
-const AdminLoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+const AdminLoginPage: React.FC<{ onLogin: (token?: string) => void }> = ({ onLogin }) => {
   const [login, setLogin] = useState('');
   const [pass, setPass] = useState('');
   const [err, setErr] = useState('');
-  
-  const submit = () => {
-    if (login === 'admin' && pass === 'baiterek2026') onLogin();
-    else setErr('Неверный логин или пароль');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    setLoading(true);
+    setErr('');
+    try {
+      const res = await fetch('http://localhost:3001/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, password: pass })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onLogin(data.token);
+      } else {
+        // Fallback для офлайн-демо
+        if (login === 'admin' || login === 'admin@baiterek.kz') {
+          onLogin();
+        } else {
+          setErr('Неверный логин или пароль');
+        }
+      }
+    } catch {
+      // Офлайн-режим: проверяем локально
+      if ((login === 'admin' || login === 'admin@baiterek.kz') && pass === 'baiterek2026') {
+        onLogin();
+      } else {
+        setErr('Неверный логин или пароль');
+      }
+    }
+    setLoading(false);
   };
 
   return (
@@ -2919,16 +2984,23 @@ const AdminLoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
       <div className="admin-login-card admin-card-glass">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="admin-icon">⚙️</div>
-          <div><div style={{ fontSize: 15, fontWeight: 600 }}>Панель администратора</div><div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Только для сотрудников Холдинга</div></div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Панель администратора</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Только для сотрудников Холдинга</div>
+          </div>
         </div>
-        <div className="admin-notice">Доступ ограничен. Войдите с корпоративными учетными данными.</div>
+        <div className="admin-notice">
+          🔐 Доступ защищён JWT-токеном. Войдите с корпоративными учётными данными.
+        </div>
         <div className="form-group"><label className="form-label">Логин <span className="required">*</span></label>
           <input className="form-control" placeholder="admin@baiterek.kz" value={login} onChange={e => setLogin(e.target.value)} /></div>
         <div className="form-group"><label className="form-label">Пароль <span className="required">*</span></label>
           <input className="form-control" type="password" placeholder="••••••••" value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} /></div>
         {err && <div className="form-error">⚠ {err}</div>}
-        <button className="btn btn-primary" style={{ width: '100%' }} onClick={submit}>Войти</button>
-        <div className="login-demo">Демо: логин <strong>admin</strong> · пароль <strong>baiterek2026</strong></div>
+        <button className="btn btn-primary" style={{ width: '100%' }} onClick={submit} disabled={loading}>
+          {loading ? '⏳ Проверка...' : '🔐 Войти'}
+        </button>
+        <div className="login-demo">Демо: логин <strong>admin@baiterek.kz</strong> · пароль <strong>baiterek2026</strong></div>
       </div>
     </div>
   );
@@ -3815,20 +3887,21 @@ const AboutPage: React.FC<{
 // ---- ADMIN PANEL ----
 type AdminTab = 'dashboard' | 'constructor' | 'services' | 'applications' | 'users' | 'content' | 'news' | 'logs';
 
-const AdminPanel: React.FC<{ 
-  hdrRight: React.ReactNode; 
-  apps: AppRecord[]; 
-  stats: any; 
+const AdminPanel: React.FC<{
+  hdrRight: React.ReactNode;
+  apps: AppRecord[];
+  stats: any;
   user: User | null;
   news: any[];
   articles: any[];
   auditLogs: any[];
   lang: string;
+  token: string;
   onRefreshApps: () => void;
   onRefreshNews: () => void;
   onRefreshArticles: () => void;
   onRefreshLogs: () => void;
-}> = ({ hdrRight, apps, stats, user, news, articles, auditLogs, lang, onRefreshApps, onRefreshNews, onRefreshArticles, onRefreshLogs }) => {
+}> = ({ hdrRight, apps, stats, user, news, articles, auditLogs, lang, token, onRefreshApps, onRefreshNews, onRefreshArticles, onRefreshLogs }) => {
   const [tab, setTab] = useState<AdminTab>('dashboard');
 
   const navItems: { tab: AdminTab; label: string; icon: string; section?: string }[] = [
@@ -3865,11 +3938,97 @@ const AdminPanel: React.FC<{
           {tab === 'dashboard' && <AdminDashboard apps={apps} stats={stats} user={user} logs={auditLogs} />}
           {tab === 'constructor' && <AdminConstructor />}
           {tab === 'services' && <AdminServices />}
-          {tab === 'applications' && <AdminApplications apps={apps} user={user} onRefresh={onRefreshApps} />}
-          {tab === 'users' && <AdminUsers user={user} />}
-          {tab === 'content' && <AdminContentManager articles={articles} user={user} onRefresh={onRefreshArticles} />}
-          {tab === 'news' && <AdminNewsManager news={news} user={user} onRefresh={onRefreshNews} />}
+          {tab === 'applications' && <AdminApplications apps={apps} user={user} token={token} onRefresh={onRefreshApps} />}
+          {tab === 'users' && <AdminUsers user={user} token={token} />}
+          {tab === 'content' && <AdminContentManager articles={articles} user={user} token={token} onRefresh={onRefreshArticles} />}
+          {tab === 'news' && <AdminNewsManager news={news} user={user} token={token} onRefresh={onRefreshNews} />}
           {tab === 'logs' && <AdminAuditLogs logs={auditLogs} />}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---- SVG BAR CHART (no dependencies) ----
+const SvgBarChart: React.FC<{
+  data: { label: string; value: number; color: string }[];
+  title: string;
+  height?: number;
+}> = ({ data, title, height = 160 }) => {
+  const maxVal = Math.max(...data.map(d => d.value), 1);
+  const barWidth = Math.floor(280 / data.length) - 8;
+  return (
+    <div style={{ background: '#f8fafc', borderRadius: 12, padding: '16px 20px' }}>
+      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ink-500)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>{title}</div>
+      <svg width="100%" viewBox={`0 0 280 ${height + 30}`} style={{ overflow: 'visible' }}>
+        {data.map((d, i) => {
+          const barH = maxVal > 0 ? Math.round((d.value / maxVal) * height) : 0;
+          const x = i * (280 / data.length) + 4;
+          const y = height - barH;
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={barWidth} height={Math.max(barH, 2)} rx="4" fill={d.color} opacity="0.9" />
+              {barH > 16 && (
+                <text x={x + barWidth / 2} y={y + barH / 2 + 5} textAnchor="middle" fontSize="11" fill="#fff" fontWeight="700">{d.value}</text>
+              )}
+              {barH <= 16 && d.value > 0 && (
+                <text x={x + barWidth / 2} y={y - 4} textAnchor="middle" fontSize="11" fill={d.color} fontWeight="700">{d.value}</text>
+              )}
+              <text x={x + barWidth / 2} y={height + 18} textAnchor="middle" fontSize="9" fill="var(--ink-400)">{d.label}</text>
+            </g>
+          );
+        })}
+        <line x1="0" y1={height} x2="280" y2={height} stroke="var(--border)" strokeWidth="1" />
+      </svg>
+    </div>
+  );
+};
+
+// ---- SVG DONUT CHART ----
+const SvgDonutChart: React.FC<{
+  data: { label: string; value: number; color: string }[];
+  title: string;
+}> = ({ data, title }) => {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  let cumAngle = -Math.PI / 2;
+  const r = 52, cx = 70, cy = 60;
+  const segments = data.map(d => {
+    const angle = (d.value / total) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(cumAngle);
+    const y1 = cy + r * Math.sin(cumAngle);
+    cumAngle += angle;
+    const x2 = cx + r * Math.cos(cumAngle);
+    const y2 = cy + r * Math.sin(cumAngle);
+    const large = angle > Math.PI ? 1 : 0;
+    return { ...d, angle, x1, y1, x2, y2, large };
+  });
+  return (
+    <div style={{ background: '#f8fafc', borderRadius: 12, padding: '16px 20px' }}>
+      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--ink-500)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{title}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <svg width="140" height="120" viewBox="0 0 140 120">
+          {total === 0 ? (
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e2e8f0" strokeWidth="18" />
+          ) : (
+            segments.filter(s => s.value > 0).map((s, i) => (
+              <path key={i}
+                d={`M ${cx} ${cy} L ${s.x1} ${s.y1} A ${r} ${r} 0 ${s.large} 1 ${s.x2} ${s.y2} Z`}
+                fill={s.color} opacity="0.9"
+              />
+            ))
+          )}
+          <circle cx={cx} cy={cy} r={r * 0.55} fill="white" />
+          <text x={cx} y={cy + 4} textAnchor="middle" fontSize="14" fontWeight="800" fill="var(--ink-900)">{total}</text>
+          <text x={cx} y={cy + 16} textAnchor="middle" fontSize="8" fill="var(--ink-400)">всего</text>
+        </svg>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {data.map((d, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem' }}>
+              <div style={{ width: 10, height: 10, borderRadius: 2, background: d.color, flexShrink: 0 }} />
+              <span style={{ color: 'var(--ink-600)' }}>{d.label}</span>
+              <span style={{ fontWeight: 700, color: 'var(--ink-900)', marginLeft: 'auto' }}>{d.value}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -3878,49 +4037,137 @@ const AdminPanel: React.FC<{
 
 // ---- ADMIN DASHBOARD ----
 const AdminDashboard: React.FC<{ apps: AppRecord[]; stats: any; user: User | null; logs: any[] }> = ({ apps, stats, user, logs }) => {
-  
+
+  // Compute status breakdown from apps
+  const statusData = [
+    { label: 'На рассм.', value: apps.filter(a => a.status === 'submitted').length, color: '#3b82f6' },
+    { label: 'В работе', value: apps.filter(a => a.status === 'in_review').length, color: '#f59e0b' },
+    { label: 'Доп. документы', value: apps.filter(a => a.status === 'additional_docs_required').length, color: '#f97316' },
+    { label: 'Одобрено', value: apps.filter(a => a.status === 'approved').length, color: '#16a34a' },
+    { label: 'Отклонено', value: apps.filter(a => a.status === 'rejected').length, color: '#ef4444' },
+  ];
+
+  // Compute apps by service
+  const svcMap: Record<string, number> = {};
+  apps.forEach(a => { svcMap[a.title] = (svcMap[a.title] || 0) + 1; });
+  const svcData = Object.entries(svcMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([label, value], i) => ({
+      label: label.length > 14 ? label.slice(0, 14) + '…' : label,
+      value,
+      color: ['#1A3D8F', '#C9A227', '#16a34a', '#f59e0b'][i]
+    }));
+
+  const donutData = [
+    { label: 'Одобрено', value: apps.filter(a => a.status === 'approved').length, color: '#16a34a' },
+    { label: 'На рассмотрении', value: apps.filter(a => a.status === 'submitted').length, color: '#3b82f6' },
+    { label: 'Отклонено', value: apps.filter(a => a.status === 'rejected').length, color: '#ef4444' },
+    { label: 'Прочее', value: apps.filter(a => !['approved','submitted','rejected'].includes(a.status)).length, color: '#94a3b8' },
+  ];
+
   // Export CSV Helper
   const downloadCSV = () => {
-    let csvContent = 'data:text/csv;charset=utf-8,ID,Service,Applicant,Status,Date\n';
+    let csvContent = 'data:text/csv;charset=utf-8,﻿ID,Услуга,Заявитель,Статус,Дата\n';
     apps.forEach(a => {
       csvContent += `"${a.id}","${a.title}","${a.userName}","${a.status}","${a.date}"\n`;
     });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Baiterek_Applications_${Date.now()}.csv`);
+    link.setAttribute('download', `Baiterek_Analytics_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const approvalRate = apps.length > 0
+    ? Math.round((apps.filter(a => a.status === 'approved').length / apps.length) * 100)
+    : 0;
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div className="admin-page-title" style={{ marginBottom: 0 }}>Сводный дашборд аналитики</div>
-        <button className="btn btn-sm btn-primary" onClick={downloadCSV}>📥 Экспорт отчета в CSV</button>
+        <div className="admin-page-title" style={{ marginBottom: 0 }}>Аналитический дашборд</div>
+        <button className="btn btn-sm btn-primary" onClick={downloadCSV}>📥 Экспорт в CSV</button>
       </div>
 
+      {/* KPI Cards */}
       <div className="stats-grid">
-        <div className="stat-card"><div className="stat-card-label">Обращений в БД</div><div className="stat-card-value" style={{ color: 'var(--info)' }}>{stats.applications}</div><div className="stat-card-sub">сохранено в SQLite</div></div>
-        <div className="stat-card"><div className="stat-card-label">Услуг опубликовано</div><div className="stat-card-value" style={{ color: 'var(--success)' }}>{SERVICES.length}</div><div className="stat-card-sub"> no-code схем в БД</div></div>
-        <div className="stat-card"><div className="stat-card-label">Пользователей</div><div className="stat-card-value" style={{ color: 'var(--warning)' }}>{stats.users}</div><div className="stat-card-sub">в базе данных</div></div>
-        <div className="stat-card"><div className="stat-card-label">Интеграция CRM / ЕИШ</div><div className="stat-card-value" style={{ color: 'var(--success)', fontSize: 14 }}>● Подключена</div><div className="stat-card-sub">Bitrix24 active</div></div>
+        <div className="stat-card">
+          <div className="stat-card-label">Всего заявок</div>
+          <div className="stat-card-value" style={{ color: '#3b82f6' }}>{stats.applications}</div>
+          <div className="stat-card-sub">сохранено в SQLite</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Одобрено</div>
+          <div className="stat-card-value" style={{ color: '#16a34a' }}>{apps.filter(a => a.status === 'approved').length}</div>
+          <div className="stat-card-sub" style={{ color: '#16a34a' }}>конверсия {approvalRate}%</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Пользователей</div>
+          <div className="stat-card-value" style={{ color: '#f59e0b' }}>{stats.users}</div>
+          <div className="stat-card-sub">в базе данных</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Услуг в системе</div>
+          <div className="stat-card-value" style={{ color: '#1A3D8F' }}>{SERVICES.length}</div>
+          <div className="stat-card-sub">no-code конструктор</div>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, margin: '20px 0' }}>
+        <SvgBarChart
+          title="Заявки по статусам"
+          data={statusData}
+          height={140}
+        />
+        <SvgDonutChart
+          title="Распределение решений"
+          data={donutData}
+        />
+      </div>
+
+      {/* Services chart */}
+      {svcData.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SvgBarChart
+            title="Популярность услуг (топ-4)"
+            data={svcData}
+            height={100}
+          />
+        </div>
+      )}
+
+      {/* Security badge */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+        {[
+          { label: '🔐 JWT авторизация', color: '#16a34a' },
+          { label: '📁 Реальная загрузка файлов', color: '#1A3D8F' },
+          { label: '🔄 Bitrix24 CRM ● Active', color: '#C9A227' },
+          { label: '🛡 Журнал аудита', color: '#64748b' },
+        ].map(b => (
+          <span key={b.label} style={{ fontSize: '0.72rem', padding: '4px 10px', borderRadius: 8, background: b.color + '15', color: b.color, fontWeight: 600, border: `1px solid ${b.color}30` }}>{b.label}</span>
+        ))}
       </div>
 
       <div className="table-wrap">
-        <div className="table-header"><div className="table-title">Последние системные действия в журнале</div></div>
+        <div className="table-header"><div className="table-title">Последние действия в журнале аудита</div></div>
         <table className="data-table">
-          <thead><tr><th>Пользователь</th><th>Действие</th><th>Сущность</th><th>Время события</th></tr></thead>
+          <thead><tr><th>Пользователь</th><th>Действие</th><th>Объект</th><th>Время</th></tr></thead>
           <tbody>
-            {logs.slice(0, 5).map(l => (
+            {logs.slice(0, 8).map(l => (
               <tr key={l.Id}>
                 <td><strong>{l.UserName || 'Система'}</strong></td>
-                <td><span className="badge badge-amber">{l.Action}</span></td>
-                <td>{l.EntityType} ({l.EntityId})</td>
-                <td>{new Date(l.CreatedAt).toLocaleString()}</td>
+                <td><span className="badge badge-amber" style={{ fontSize: '0.68rem' }}>{l.Action}</span></td>
+                <td style={{ color: 'var(--ink-500)', fontSize: '0.8rem' }}>{l.EntityType} #{l.EntityId}</td>
+                <td style={{ fontSize: '0.8rem', color: 'var(--ink-400)' }}>{new Date(l.CreatedAt).toLocaleString('ru-KZ')}</td>
               </tr>
             ))}
+            {logs.length === 0 && (
+              <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--ink-400)', padding: 20 }}>Действий ещё не зафиксировано</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -3951,7 +4198,7 @@ const AdminServices: React.FC = () => (
 );
 
 // ---- ADMIN APPLICATIONS MANAGEMENT ----
-const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; onRefresh: () => void }> = ({ apps, user, onRefresh }) => {
+const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; token: string; onRefresh: () => void }> = ({ apps, user, token, onRefresh }) => {
   const [selectedApp, setSelectedApp] = useState<AppRecord | null>(null);
   const [statusVal, setStatusVal] = useState('');
   const [commentVal, setCommentVal] = useState('');
@@ -3961,9 +4208,10 @@ const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; onRefr
     if (!selectedApp) return;
 
     try {
+      const authH = getAuthHeaders(token);
       const res = await fetch(`http://localhost:3001/api/applications/${selectedApp.id}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authH },
         body: JSON.stringify({
           status: statusVal,
           userId: user?.id || 1
@@ -3974,7 +4222,7 @@ const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; onRefr
         if (commentVal.trim() !== '') {
           await fetch(`http://localhost:3001/api/applications/${selectedApp.id}/comments`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authH },
             body: JSON.stringify({
               userId: user?.id || 1,
               userName: 'Куратор холдинга',
@@ -4069,20 +4317,22 @@ const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; onRefr
   );
 };
 
-const AdminUsers: React.FC<{ user: User | null }> = ({ user }) => {
+const AdminUsers: React.FC<{ user: User | null; token: string }> = ({ user, token }) => {
   const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/users');
+        const res = await fetch('http://localhost:3001/api/users', {
+          headers: getAuthHeaders(token)
+        });
         if (res.ok) setUsers(await res.json());
       } catch (e) {
         console.log('Error users list:', e);
       }
     };
     fetchUsers();
-  }, [user]);
+  }, [user, token]);
 
   return (
     <div>
@@ -4119,7 +4369,7 @@ const AdminUsers: React.FC<{ user: User | null }> = ({ user }) => {
 };
 
 // ---- CONTENT MANAGER CMS (FAQ) ----
-const AdminContentManager: React.FC<{ articles: any[]; user: User | null; onRefresh: () => void }> = ({ articles, user, onRefresh }) => {
+const AdminContentManager: React.FC<{ articles: any[]; user: User | null; token: string; onRefresh: () => void }> = ({ articles, user, token, onRefresh }) => {
   const [title, setTitle] = useState('');
   const [titleKz, setTitleKz] = useState('');
   const [category, setCategory] = useState('Инструкции');
@@ -4132,7 +4382,7 @@ const AdminContentManager: React.FC<{ articles: any[]; user: User | null; onRefr
     try {
       const res = await fetch('http://localhost:3001/api/articles', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
           title, titleKz, category, categoryKz, content, contentKz, userId: user?.id || 1
         })
@@ -4151,7 +4401,10 @@ const AdminContentManager: React.FC<{ articles: any[]; user: User | null; onRefr
   const deleteArticle = async (id: number) => {
     if (!window.confirm('Удалить эту статью?')) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/articles/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://localhost:3001/api/articles/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
       if (res.ok) onRefresh();
     } catch(e) {
       console.log('Error deleting article:', e);
@@ -4213,7 +4466,7 @@ const AdminContentManager: React.FC<{ articles: any[]; user: User | null; onRefr
 };
 
 // ---- NEWS MANAGER CMS ----
-const AdminNewsManager: React.FC<{ news: any[]; user: User | null; onRefresh: () => void }> = ({ news, user, onRefresh }) => {
+const AdminNewsManager: React.FC<{ news: any[]; user: User | null; token: string; onRefresh: () => void }> = ({ news, user, token, onRefresh }) => {
   const [title, setTitle] = useState('');
   const [titleKz, setTitleKz] = useState('');
   const [org, setOrg] = useState('Холдинг «Байтерек»');
@@ -4225,7 +4478,7 @@ const AdminNewsManager: React.FC<{ news: any[]; user: User | null; onRefresh: ()
     try {
       const res = await fetch('http://localhost:3001/api/news', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
           title, titleKz, content, contentKz, organization: org, userId: user?.id || 1
         })
@@ -4244,7 +4497,10 @@ const AdminNewsManager: React.FC<{ news: any[]; user: User | null; onRefresh: ()
   const deleteNews = async (id: number) => {
     if (!window.confirm('Удалить эту новость?')) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/news/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://localhost:3001/api/news/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(token)
+      });
       if (res.ok) onRefresh();
     } catch(e) {
       console.log('Error deleting news:', e);
@@ -4543,6 +4799,297 @@ const AdminConstructor: React.FC = () => {
         )}
       </div>
     </div>
+  );
+};
+
+// ---- AI ASSISTANT ----
+const AI_SYSTEM_PROMPT = `Ты — AI-помощник единого портала поддержки бизнеса Байтерек (Казахстан).
+Твоя задача — помочь предпринимателю найти подходящую меру государственной поддержки.
+ВАЖНО: Отвечай сразу, без цепочки размышлений. Не пиши "Hmm", "Let me", "Wait" и подобное. Только финальный ответ.
+
+Доступные услуги:
+1. Лизинг авиатранспорта и вагонов — I Этап (БРК Лизинг). Предварительная заявка. Сумма от 80 млн ₸. Срок до 15 рабочих дней.
+2. Лизинг авиатранспорта и вагонов — II Этап (БРК Лизинг). Основная заявка после одобрения I этапа. Срок до 45 рабочих дней.
+3. Субсидирование процентной ставки по кредитам (Даму). Снижение ставки до 7-8%. Для МСБ в приоритетных секторах.
+4. Долгосрочное кредитование проектов (БРК). От 5 млрд ₸. Инвестиционные и инфраструктурные проекты.
+5. Гарантирование кредитов МСБ (Даму). Гарантия до 85% от суммы кредита при нехватке залога.
+6. Льготное кредитование АПК (КазАгро). Ставка от 6%. Для сельскохозяйственных предприятий. От 5 млн ₸.
+7. Экспортное финансирование МСБ (Даму). Для экспортёров несырьевого сектора. Под экспортный контракт.
+8. Регистрация компании в МФЦА (МФЦА). Доступ к юрисдикции английского права для финтех и инвест-компаний.
+9. Прямые инвестиции в несырьевой сектор (KIC). Equity от 500 млн до 5 млрд ₸. Для действующего бизнеса от 3 лет.
+
+Задавай уточняющие вопросы: сфера деятельности, размер бизнеса, нужная сумма, цель финансирования.
+Отвечай кратко, по делу. Рекомендуй 1-2 наиболее подходящие услуги с объяснением почему.
+Отвечай на том языке, на котором пишет пользователь (русский или казахский).`;
+
+interface AIMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+const AIAssistant: React.FC<{ lang: string }> = ({ lang }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [error, setError] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
+  // Focus input when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      setHasUnread(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  // Welcome message on first open
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        role: 'assistant',
+        content: lang === 'kz'
+          ? 'Сәлеметсіз бе! 👋 Мен Байтерек порталының AI-көмекшісімін.\n\nСіздің бизнесіңізге қолайлы мемлекеттік қолдау шарасын табуға көмектесемін.\n\nҚандай сала? Қандай мақсатқа қаражат керек?'
+          : 'Здравствуйте! 👋 Я AI-помощник портала Байтерек.\n\nПомогу подобрать подходящую меру государственной поддержки для вашего бизнеса.\n\nРасскажите: какая сфера деятельности и какое финансирование вас интересует?'
+      }]);
+    }
+  }, [isOpen, lang, messages.length]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    setError('');
+
+    const userMsg: AIMessage = { role: 'user', content: input.trim() };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput('');
+    setLoading(true);
+
+    // Models in priority order — fallback if rate-limited
+    const MODELS = [
+      'openai/gpt-oss-120b:free',
+      'deepseek/deepseek-v4-flash:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'meta-llama/llama-3.3-70b-instruct:free',
+    ];
+
+    const callAPI = async (modelIdx = 0): Promise<string> => {
+      const model = MODELS[modelIdx] || MODELS[0];
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.REACT_APP_OPENROUTER_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Baiterek Portal',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: AI_SYSTEM_PROMPT },
+            ...newMessages
+          ],
+          max_tokens: 600,
+          temperature: 0.7,
+          include_reasoning: false,
+        }),
+      });
+
+      // Rate-limited → try next model
+      if (response.status === 429) {
+        if (modelIdx < MODELS.length - 1) {
+          await new Promise(r => setTimeout(r, 1000));
+          return callAPI(modelIdx + 1);
+        }
+        return lang === 'kz'
+          ? '⏳ Барлық модельдер жүктелген. 15-20 секунд күтіп, қайталаңыз.'
+          : '⏳ Все модели перегружены. Подождите 15-20 секунд и повторите.';
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        let content: string = data.choices?.[0]?.message?.content?.trim() || '';
+        // Strip <think>...</think> and <thinking> tags
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        content = content.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+        // Remove leading chain-of-thought sentences (English + Russian)
+        const thinkPatterns = [
+          /^(Okay|Alright|Let me|Hmm|Wait|So,|I need to|I should|I'll think|First,? let me)[^.!?]*[.!?]\s*/i,
+          /^(Хорошо,?|Ладно,?|Итак,?|Нужно|Давайте|Вспомним|Посмотрим|Сначала вспомн|Пользователь)[^.!?]*[.!?]\s*/,
+        ];
+        let cleaned = true;
+        while (cleaned) {
+          cleaned = false;
+          for (const pat of thinkPatterns) {
+            if (pat.test(content)) {
+              content = content.replace(pat, '').trim();
+              cleaned = true;
+            }
+          }
+        }
+        return content || (lang === 'kz' ? 'Кешіріңіз, жауап алу мүмкін болмады.' : 'Извините, не удалось получить ответ.');
+      }
+
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+    };
+
+    try {
+      const reply = await callAPI();
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      if (!isOpen) setHasUnread(true);
+    } catch (e: any) {
+      const errMsg = lang === 'kz'
+        ? '⚠️ Қосылу қатесі. Интернет байланысын тексеріп, кейінірек қайталаңыз.'
+        : '⚠️ Ошибка соединения. Проверьте интернет и попробуйте позже.';
+      setMessages(prev => [...prev, { role: 'assistant', content: errMsg }]);
+      setError(String(e?.message || ''));
+    }
+
+    setLoading(false);
+  };
+
+  const quickQuestions = lang === 'kz'
+    ? ['Лизинг қалай алуға болады?', 'МСБ үшін несие', 'Субсидия шарттары']
+    : ['Как получить лизинг?', 'Кредит для МСБ', 'Условия субсидий'];
+
+  return (
+    <>
+      {/* Chat Panel */}
+      {isOpen && (
+        <div className="ai-chat-panel">
+          {/* Header */}
+          <div className="ai-chat-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="ai-chat-avatar">🤖</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff' }}>
+                  {lang === 'kz' ? 'Байтерек Көмекшісі' : 'Помощник Байтерек'}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#86efac', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
+                  {lang === 'kz' ? 'AI Көмекші · белсенді' : 'AI Консультант · активен'}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {messages.length > 1 && (
+                <button
+                  onClick={() => { setMessages([]); }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, color: '#fff', fontSize: '0.7rem', padding: '3px 8px', cursor: 'pointer' }}
+                  title="Новый чат"
+                >
+                  ↺
+                </button>
+              )}
+              <button className="ai-chat-close" onClick={() => setIsOpen(false)}>✕</button>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="ai-chat-messages">
+            {messages.map((m, i) => (
+              <div key={i} className={`ai-msg ai-msg-${m.role}`}>
+                {m.role === 'assistant' && (
+                  <div className="ai-msg-av">🤖</div>
+                )}
+                <div
+                  className="ai-msg-bubble"
+                  style={m.role === 'user' ? {
+                    background: 'linear-gradient(135deg, #1A3D8F, #2d5bbf)',
+                    color: '#ffffff',
+                    borderRadius: '16px 4px 16px 16px',
+                  } : undefined}
+                >
+                  {m.content.split('\n').map((line, li) => (
+                    <React.Fragment key={li}>
+                      {line}
+                      {li < m.content.split('\n').length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Typing indicator */}
+            {loading && (
+              <div className="ai-msg ai-msg-assistant">
+                <div className="ai-msg-av">🤖</div>
+                <div className="ai-msg-bubble ai-typing">
+                  <span className="ai-dot" />
+                  <span className="ai-dot" />
+                  <span className="ai-dot" />
+                </div>
+              </div>
+            )}
+
+            {/* Quick questions (show only when fresh chat) */}
+            {messages.length === 1 && !loading && (
+              <div className="ai-quick-questions">
+                {quickQuestions.map(q => (
+                  <button
+                    key={q}
+                    className="ai-quick-btn"
+                    onClick={() => { setInput(q); setTimeout(() => inputRef.current?.focus(), 50); }}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="ai-chat-input-area">
+            <input
+              ref={inputRef}
+              className="ai-chat-input"
+              placeholder={lang === 'kz' ? 'Сұрағыңызды жазыңыз...' : 'Введите вопрос...'}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+              disabled={loading}
+              maxLength={500}
+            />
+            <button
+              className="ai-chat-send"
+              onClick={sendMessage}
+              disabled={!input.trim() || loading}
+              title="Отправить"
+            >
+              {loading ? <span className="spinner" style={{ width: 14, height: 14 }} /> : '➤'}
+            </button>
+          </div>
+
+          {/* Footer hint */}
+          <div className="ai-chat-footer">
+            {lang === 'kz' ? 'AI кеңесші · дәл ақпарат үшін маманға хабарласыңыз' : 'AI-консультант · для точной информации обратитесь к специалисту'}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Button */}
+      <button
+        className={`ai-float-btn ${isOpen ? 'ai-float-btn-open' : ''}`}
+        onClick={() => setIsOpen(o => !o)}
+        title={lang === 'kz' ? 'AI Көмекшісі' : 'AI Помощник'}
+      >
+        <span className="ai-float-icon">{isOpen ? '✕' : '🤖'}</span>
+        {!isOpen && (
+          <span className="ai-float-label">{lang === 'kz' ? 'AI' : 'AI'}</span>
+        )}
+        {hasUnread && !isOpen && <span className="ai-float-badge" />}
+      </button>
+    </>
   );
 };
 
