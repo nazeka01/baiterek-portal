@@ -3127,7 +3127,7 @@ const AdminLoginPage: React.FC<{ onLogin: (token?: string) => void }> = ({ onLog
 
   return (
     <div className="admin-login-page">
-      <div className="admin-login-card admin-card-glass">
+      <div className="admin-login-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="admin-icon">⚙️</div>
           <div>
