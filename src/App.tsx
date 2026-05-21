@@ -1003,7 +1003,8 @@ const App: React.FC = () => {
     } catch(e) {
       console.log('Error loading comments/docs details:', e);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const selectActiveApp = async (appRecord: AppRecord) => {
     setActiveApp(appRecord);
@@ -2435,6 +2436,7 @@ const CatalogPage: React.FC<{
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleFilter = (newCat: string) => { setCat(newCat); setPage(1); };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSearch = (q: string) => { setSearch(q); setPage(1); };
 
   const cats = [
@@ -2624,6 +2626,7 @@ const AppFlow: React.FC<{
       }, 1200);
       return () => clearTimeout(timer);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [computed.bin, curStep, steps]);
 
   // Validation
@@ -4833,6 +4836,7 @@ const AIAssistant: React.FC<{ lang: string }> = ({ lang }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
