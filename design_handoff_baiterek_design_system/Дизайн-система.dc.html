@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  :root{
+    /* Primary — green (монумент: рост/ствол) */
+    --green-50:#EAF3EE;  --green-100:#C9E2D5; --green-200:#A3CEB8; --green-300:#74B393;
+    --green-400:#429A70; --green-500:#18794D; --green-600:#146843; --green-700:#135F3D;
+    --green-800:#0D4A2F; --green-900:#08301F;
+    /* Secondary — gold/ochra (монумент: крона/шар) */
+    --gold-50:#FBF8EF;   --gold-100:#F5EDD3;  --gold-200:#ECDFB0;  --gold-300:#E1CE89;
+    --gold-400:#D9C575;  --gold-500:#D3B961;  --gold-600:#C0A544;  --gold-700:#A08636;
+    --gold-800:#7C6829;  --gold-900:#5A4B1D;
+    /* Roles */
+    --color-primary:var(--green-500);
+    --color-primary-hover:var(--green-700);
+    --color-primary-active:var(--green-800);
+    --color-secondary:var(--gold-500);
+    --color-secondary-hover:var(--gold-600);
+    /* Neutrals */
+    --bg:#FFFFFF; --bg-muted:#F7F7F5; --bg-sunken:#EFEEEA;
+    --border:#E5E4E0; --border-strong:#D6D5CF;
+    --text:#5B5B5B; --text-strong:#3A3A38; --text-muted:#8A8A85; --text-faint:#AFAEA8;
+    --text-on-gold:#000000; --text-on-primary:#FFFFFF; --text-on-dark:#EAF3EE;
+    /* Semantic */
+    --success:#18794D; --success-bg:#EAF3EE;
+    --error:#C0392B;   --error-bg:#FBEBE9;
+    --warning:#A08636; --warning-bg:#FBF8EF; --warning-dot:#D3B961;
+    --info:#5B5B5B;    --info-bg:#F2F2F0;
+    --footer-bg:#0D4A2F; --footer-line:#1C6A47;
+    /* Radius — минимальные скругления (официальность) */
+    --radius-xs:2px; --radius-sm:4px; --radius-md:6px; --radius-lg:8px; --radius-pill:999px;
+    /* Spacing (8px grid) */
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+    --space-6:32px; --space-7:48px; --space-8:64px; --space-9:96px;
+    /* Type */
+    --font-sans:'Golos Text','Segoe UI',system-ui,-apple-system,sans-serif;
+    --font-mono:'Roboto Mono','SF Mono',ui-monospace,monospace;
+    /* Elevation — сдержанная */
+    --shadow-sm:0 1px 2px rgba(13,74,47,.06);
+    --shadow-md:0 4px 14px rgba(13,74,47,.10);
+    --shadow-lg:0 12px 34px rgba(13,74,47,.14);
+    --focus:0 0 0 3px rgba(24,121,77,.35);
+  }
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font-sans);color:var(--text);background:var(--bg-muted);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.5}
+  a{color:var(--color-primary);text-decoration:none}
+  a:hover{color:var(--color-primary-hover)}
+  ::selection{background:var(--gold-200)}
+  @keyframes bt-pulse{0%,100%{box-shadow:0 0 0 0 rgba(211,185,97,.55)}50%{box-shadow:0 0 0 12px rgba(211,185,97,0)}}
+</style>
+</helmet>
+
+<div style="display:flex;align-items:flex-start;max-width:1400px;margin:0 auto;gap:0">
+
+  <!-- ============ SIDEBAR TOC ============ -->
+  <aside style="position:sticky;top:0;align-self:flex-start;width:256px;flex:none;height:100vh;overflow-y:auto;background:var(--footer-bg);color:var(--text-on-dark);padding:28px 20px 40px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <img src="assets/baiterek-logo.png" alt="Baiterek" style="height:52px;width:auto;display:block;filter:drop-shadow(0 1px 4px rgba(0,0,0,.25))">
+    </div>
+    <div style="font-size:13px;font-weight:600;letter-spacing:.02em;color:#fff;margin-bottom:2px">Дизайн-система</div>
+    <div style="font-size:12px;color:var(--gold-300);margin-bottom:24px;line-height:1.4">Единый портал<br>поддержки бизнеса</div>
+    <sc-for list="{{ toc }}" as="group" hint-placeholder-count="3">
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-400);margin:20px 0 8px;font-weight:600">{{ group.label }}</div>
+      <sc-for list="{{ group.items }}" as="item" hint-placeholder-count="4">
+        <a href="{{ item.href }}" style="display:block;font-size:13.5px;color:#D7E7DF;padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:1px" style-hover="background:rgba(255,255,255,.08);color:#fff">{{ item.text }}</a>
+      </sc-for>
+    </sc-for>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main style="flex:1;min-width:0;background:var(--bg-muted)">
+
+    <!-- COVER / BRAND -->
+    <section id="brand" data-screen-label="Обложка" style="padding:72px 56px 56px;background:linear-gradient(160deg,var(--green-800),var(--green-600) 60%,var(--green-500));color:#fff;position:relative;overflow:hidden">
+      <div style="position:absolute;right:-60px;top:-40px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--gold-400),var(--gold-600));opacity:.16"></div>
+      <div style="position:relative;max-width:760px">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(211,185,97,.18);border:1px solid rgba(211,185,97,.4);color:var(--gold-300);font-size:12px;font-weight:600;letter-spacing:.04em;padding:6px 14px;border-radius:var(--radius-pill);margin-bottom:24px">АО «НУХ «Байтерек» · институт развития РК</div>
+        <h1 style="font-size:46px;line-height:1.1;font-weight:700;margin:0 0 18px;letter-spacing:-.01em">Дизайн-система<br>Единого портала поддержки бизнеса</h1>
+        <p style="font-size:18px;line-height:1.6;color:#D7E7DF;margin:0 0 32px;max-width:620px">Единое цифровое окно к 70+ мерам господдержки от 7 дочерних организаций холдинга. Строгий государственный сервис — надёжный, доступный, современный.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--green-500);border:1px solid rgba(255,255,255,.4)"></span>#18794D · Primary</div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--gold-500)"></span>#D3B961 · Secondary</div>
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px">Golos Text · WCAG 2.1 AA</div>
+        </div>
+      </div>
+    </section>
+
+    <div style="padding:0 56px 96px">
+    <!-- ================= COLORS ================= -->
+    <section id="colors" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">01 · Основы</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Цветовая палитра</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 36px;max-width:660px">Зелёно-золотая гамма монумента «Байтерек»: зелёный — ствол и рост, золото — крона. Без единого синего оттенка. Шкалы 50–900 сгенерированы из базовых значений реального сайта.</p>
+
+      <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Primary · зелёный</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-bottom:10px">CTA, навигация, ссылки, активные состояния · base <b style="color:var(--color-primary)">#18794D</b> (500) · hover #135F3D (700)</div>
+      <div style="display:flex;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);margin-bottom:28px">
+        <sc-for list="{{ greenScale }}" as="c" hint-placeholder-count="10">
+          <div style="flex:1;min-width:0;height:92px;background:{{ c.hex }};display:flex;flex-direction:column;justify-content:space-between;padding:8px 9px">
+            <span style="font-size:12px;font-weight:600;color:{{ c.onDark }}">{{ c.step }}</span>
+            <span style="font-family:var(--font-mono);font-size:9.5px;line-height:1.3;color:{{ c.onDark }};opacity:.85">{{ c.hex }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Secondary · золото-охра</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-bottom:10px">Фон мегаменю, бейджи, «премиальные» акценты · base <b style="color:var(--gold-700)">#D3B961</b> (500) · текст поверх — чёрный</div>
+      <div style="display:flex;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);margin-bottom:36px">
+        <sc-for list="{{ goldScale }}" as="c" hint-placeholder-count="10">
+          <div style="flex:1;min-width:0;height:92px;background:{{ c.hex }};display:flex;flex-direction:column;justify-content:space-between;padding:8px 9px">
+            <span style="font-size:12px;font-weight:600;color:{{ c.onDark }}">{{ c.step }}</span>
+            <span style="font-family:var(--font-mono);font-size:9.5px;line-height:1.3;color:{{ c.onDark }};opacity:.9">{{ c.hex }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Нейтрали</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ neutralScale }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px">
+                <span style="width:40px;height:40px;flex:none;border-radius:var(--radius-xs);background:{{ c.hex }};border:1px solid var(--border)"></span>
+                <div style="min-width:0">
+                  <div style="font-size:13.5px;font-weight:500;color:var(--text-strong)">{{ c.name }}</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">{{ c.token }} · {{ c.hex }}</div>
+                </div>
+                <div style="margin-left:auto;font-size:12px;color:var(--text-faint);text-align:right">{{ c.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Семантика · статус передаётся цветом <span style="font-weight:400;color:var(--text-muted)">и иконкой</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ semantic }}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px">
+                <span style="width:40px;height:40px;flex:none;border-radius:var(--radius-xs);background:{{ c.hex }};color:{{ c.onDark }};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">{{ c.glyph }}</span>
+                <div style="min-width:0">
+                  <div style="font-size:13.5px;font-weight:500;color:var(--text-strong)">{{ c.name }}</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">{{ c.token }} · {{ c.hex }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="margin-top:8px;background:var(--gold-500);color:#000;border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.5">
+              <b>Контраст поверх золота</b> — только чёрный текст (#000 на #D3B961 ≈ 8.9:1, WCAG AAA). Белый текст на золоте запрещён.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TYPOGRAPHY ================= -->
+    <section id="typography" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">02 · Основы</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Типографика</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 8px;max-width:660px">Golos Text — строгий читаемый гротеск с полной поддержкой кириллицы, казахской кириллицы и латиницы. Заголовки — сдержанной насыщенности (600), акцентные фразы — 700.</p>
+      <p style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin:0 0 32px">font-family: var(--font-sans) → 'Golos Text' · веса 400 / 500 / 600 / 700</p>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+        <sc-for list="{{ typeScale }}" as="t" hint-placeholder-count="8">
+          <div style="display:flex;align-items:baseline;gap:24px;padding:18px 22px;border-bottom:1px solid var(--border)">
+            <div style="width:120px;flex:none">
+              <div style="font-size:14px;font-weight:600;color:var(--text-strong)">{{ t.name }}</div>
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">{{ t.spec }}</div>
+            </div>
+            <div style="flex:1;min-width:0;font-size:{{ t.size }};line-height:{{ t.line }};font-weight:{{ t.weight }};color:var(--text-strong)">{{ t.sample }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ================= SPACING / RADIUS ================= -->
+    <section id="spacing" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">03 · Основы</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Сетка и форма</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 32px;max-width:660px">Шаг сетки — 8px. Скругления минимальные (2–8px) для официального характера. Тени сдержанные, с зелёным подтоном.</p>
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:32px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Spacing · 8px grid</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ spaceScale }}" as="s" hint-placeholder-count="9">
+              <div style="display:flex;align-items:center;gap:16px">
+                <div style="width:96px;flex:none;font-family:var(--font-mono);font-size:12px;color:var(--text)">{{ s.token }}</div>
+                <div style="width:52px;flex:none;font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">{{ s.px }}</div>
+                <div style="height:16px;background:var(--green-400);border-radius:2px;width:{{ s.px }}"></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Радиусы</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ radiusScale }}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:16px">
+                <div style="width:48px;height:48px;flex:none;background:var(--green-50);border:1.5px solid var(--color-primary);border-radius:{{ r.px }}"></div>
+                <div>
+                  <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-strong)">{{ r.token }}</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">{{ r.px }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin:24px 0 12px">Тени</div>
+          <div style="display:flex;gap:14px">
+            <div style="flex:1;height:60px;background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">sm</div>
+            <div style="flex:1;height:60px;background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">md</div>
+            <div style="flex:1;height:60px;background:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">lg</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BUTTONS ================= -->
+    <section id="buttons" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">04 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Кнопки</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 32px;max-width:660px">Основной CTA — зелёный. Золотая — для «премиальных» действий (консультация, избранное). Все состояния: default / hover / active / focus / disabled.</p>
+
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <!-- Primary -->
+        <div style="display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px">
+          <div><div style="font-size:13.5px;font-weight:600;color:var(--text-strong)">Primary</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">CTA</div></div>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm)" style-hover="background:var(--color-primary-hover)">Подать заявку</button>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button style="background:var(--color-primary-hover);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500">Подать заявку</button><span style="font-size:10px;color:var(--text-faint)">hover</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button style="background:var(--color-primary-active);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500">Подать заявку</button><span style="font-size:10px;color:var(--text-faint)">active</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;box-shadow:var(--focus)">Подать заявку</button><span style="font-size:10px;color:var(--text-faint)">focus</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button disabled style="background:var(--green-100);color:#8FB3A1;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:not-allowed">Подать заявку</button><span style="font-size:10px;color:var(--text-faint)">disabled</span></div>
+          </div>
+        </div>
+        <!-- Secondary gold -->
+        <div style="display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px">
+          <div><div style="font-size:13.5px;font-weight:600;color:var(--text-strong)">Secondary</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">золото</div></div>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <button style="background:var(--gold-500);color:#000;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--gold-600)">Получить консультацию</button>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button style="background:var(--gold-600);color:#000;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500">Получить консультацию</button><span style="font-size:10px;color:var(--text-faint)">hover</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button style="background:var(--gold-700);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500">Получить консультацию</button><span style="font-size:10px;color:var(--text-faint)">active</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><button disabled style="background:var(--gold-100);color:#BDAE7E;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:not-allowed">Получить консультацию</button><span style="font-size:10px;color:var(--text-faint)">disabled</span></div>
+          </div>
+        </div>
+        <!-- Outline + ghost + danger -->
+        <div style="display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px">
+          <div><div style="font-size:13.5px;font-weight:600;color:var(--text-strong)">Outline / Ghost</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">вторичные</div></div>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <button style="background:transparent;color:var(--color-primary);border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:9.5px 20px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--green-50)">Подробнее</button>
+            <button style="background:transparent;color:var(--color-primary);border:none;border-radius:var(--radius-sm);padding:11px 16px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--green-50)">В избранное</button>
+            <button style="background:var(--error);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#A5312360">Отозвать заявку</button>
+            <button disabled style="background:transparent;color:var(--text-faint);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:9.5px 20px;font-family:inherit;font-size:14px;font-weight:500;cursor:not-allowed">Недоступно</button>
+          </div>
+        </div>
+        <!-- Sizes -->
+        <div style="display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px">
+          <div><div style="font-size:13.5px;font-weight:600;color:var(--text-strong)">Размеры</div><div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">sm/md/lg</div></div>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:7px 14px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer">Small</button>
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer">Medium</button>
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px 30px;font-family:inherit;font-size:16px;font-weight:500;cursor:pointer">Large · min 44px hit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FORM FIELDS ================= -->
+    <section id="forms" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">05 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Поля форм</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 32px;max-width:660px">Состояния полей и элементы выбора. Видимый focus-state, явные сообщения об ошибке — не только цветом.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px 40px;max-width:920px">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Наименование организации</label>
+          <input value="ТОО «Агротех Астана»" style="width:100%;font-family:inherit;font-size:15px;color:var(--text-strong);background:#fff;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:11px 14px" />
+          <div style="font-size:12px;color:var(--text-muted);margin-top:5px">Как в свидетельстве о регистрации</div>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">БИН <span style="color:var(--color-primary)">focus</span></label>
+          <input value="12040012" style="width:100%;font-family:inherit;font-size:15px;color:var(--text-strong);background:#fff;border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:11px 14px;box-shadow:var(--focus)" />
+          <div style="font-size:12px;color:var(--text-muted);margin-top:5px">12 цифр</div>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Сумма займа</label>
+          <input value="0" style="width:100%;font-family:inherit;font-size:15px;color:var(--error);background:#fff;border:1.5px solid var(--error);border-radius:var(--radius-sm);padding:11px 14px" />
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--error);margin-top:5px"><span style="font-weight:700">✕</span> Укажите сумму больше 0 ₸</div>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-faint);margin-bottom:6px">ИИН руководителя <span style="font-weight:400">(disabled)</span></label>
+          <input disabled value="Заполняется автоматически" style="width:100%;font-family:inherit;font-size:15px;color:var(--text-faint);background:var(--bg-sunken);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;cursor:not-allowed" />
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Дочерняя организация</label>
+          <div style="position:relative">
+            <select style="width:100%;font-family:inherit;font-size:15px;color:var(--text-strong);background:#fff;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:11px 40px 11px 14px;appearance:none;cursor:pointer">
+              <option>Фонд развития предпринимательства «Даму»</option>
+              <option>Банк Развития Казахстана</option>
+              <option>KazakhExport</option>
+            </select>
+            <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted)">▾</span>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Комментарий</label>
+          <textarea rows="2" style="width:100%;font-family:inherit;font-size:15px;color:var(--text-strong);background:#fff;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:11px 14px;resize:vertical">Планируем расширение производства.</textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:36px;flex-wrap:wrap;margin-top:28px">
+        <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:20px;height:20px;border-radius:var(--radius-xs);background:var(--color-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">✓</span> Согласен с обработкой ПД</label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:20px;height:20px;border-radius:var(--radius-xs);background:#fff;border:1.5px solid var(--border-strong)"></span> Получать уведомления</label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--color-primary);display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:var(--color-primary)"></span></span> Юридическое лицо</label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border-strong)"></span> Индивидуальный предприниматель</label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:38px;height:22px;border-radius:var(--radius-pill);background:var(--color-primary);position:relative;flex:none"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff"></span></span> Электронная подпись (ЭЦП)</label>
+      </div>
+    </section>
+
+    <!-- ================= STATUS & ALERTS ================= -->
+    <section id="status" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">06 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Статусы и уведомления</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Статус всегда передаётся <b>цветом + иконкой + текстом</b> (требование доступности). Зелёный — одобрено, золото — на рассмотрении / требует внимания, красный — отклонено.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px">
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--success-bg);color:var(--success);border:1px solid #BEDBC9;border-radius:var(--radius-pill);padding:6px 14px;font-size:13px;font-weight:500"><span style="font-weight:700">✓</span> Одобрено</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--warning-bg);color:var(--warning);border:1px solid #E6D9AC;border-radius:var(--radius-pill);padding:6px 14px;font-size:13px;font-weight:500"><span style="color:var(--warning-dot);font-weight:700">●</span> На рассмотрении</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--warning-bg);color:var(--warning);border:1px solid #E6D9AC;border-radius:var(--radius-pill);padding:6px 14px;font-size:13px;font-weight:500"><span style="font-weight:700">⚠</span> Требует внимания</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--error-bg);color:var(--error);border:1px solid #EBC9C4;border-radius:var(--radius-pill);padding:6px 14px;font-size:13px;font-weight:500"><span style="font-weight:700">✕</span> Отклонено</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:var(--info-bg);color:var(--info);border:1px solid var(--border-strong);border-radius:var(--radius-pill);padding:6px 14px;font-size:13px;font-weight:500"><span style="font-weight:700">○</span> Черновик</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:760px">
+        <div style="display:flex;gap:12px;align-items:flex-start;background:var(--success-bg);border:1px solid #BEDBC9;border-left:4px solid var(--success);border-radius:var(--radius-sm);padding:14px 16px"><span style="color:var(--success);font-weight:700;font-size:15px">✓</span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Заявка одобрена</div><div style="font-size:13px;color:var(--text)">Заём одобрен. Подпишите договор в разделе «Документы».</div></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;background:var(--warning-bg);border:1px solid #E6D9AC;border-left:4px solid var(--warning-dot);border-radius:var(--radius-sm);padding:14px 16px"><span style="color:var(--warning);font-weight:700;font-size:15px">⚠</span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Требуется документ</div><div style="font-size:13px;color:var(--text)">Загрузите финансовую отчётность за 2025 год до 20 июля.</div></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;background:var(--error-bg);border:1px solid #EBC9C4;border-left:4px solid var(--error);border-radius:var(--radius-sm);padding:14px 16px"><span style="color:var(--error);font-weight:700;font-size:15px">✕</span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Заявка отклонена</div><div style="font-size:13px;color:var(--text)">Не соответствует критериям программы. Причина в комментарии.</div></div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;background:var(--info-bg);border:1px solid var(--border-strong);border-left:4px solid var(--info);border-radius:var(--radius-sm);padding:14px 16px"><span style="color:var(--info);font-weight:700;font-size:15px">i</span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Заявка передана в BPM-систему</div><div style="font-size:13px;color:var(--text)">Ожидайте уведомление о смене статуса.</div></div></div>
+      </div>
+    </section>
+
+    <!-- ================= NAVIGATION ================= -->
+    <section id="nav" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">07 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Навигация</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Хлебные крошки (обязательны по ТЗ) с разделителем «›», пагинация, сортировка. Видимое местоположение пользователя в структуре портала.</p>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:20px">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:10px">Breadcrumbs</div>
+        <nav style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap">
+          <a href="#" style="color:var(--color-primary)">Главная</a><span style="color:var(--text-faint)">›</span>
+          <a href="#" style="color:var(--color-primary)">Каталог услуг</a><span style="color:var(--text-faint)">›</span>
+          <a href="#" style="color:var(--color-primary)">Финансирование</a><span style="color:var(--text-faint)">›</span>
+          <span style="color:var(--text-muted)">Льготное кредитование МСБ</span>
+        </nav>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:14px">‹</button>
+          <button style="width:38px;height:38px;border:none;background:var(--color-primary);border-radius:var(--radius-sm);color:#fff;cursor:pointer;font-size:14px;font-weight:600">1</button>
+          <button style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text-strong);cursor:pointer;font-size:14px" style-hover="background:var(--green-50)">2</button>
+          <button style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text-strong);cursor:pointer;font-size:14px" style-hover="background:var(--green-50)">3</button>
+          <span style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text-faint)">…</span>
+          <button style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text-strong);cursor:pointer;font-size:14px" style-hover="background:var(--green-50)">12</button>
+          <button style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text-strong);cursor:pointer;font-size:14px" style-hover="background:var(--green-50)">›</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-muted)">Сортировка:
+          <div style="position:relative"><select style="font-family:inherit;font-size:14px;color:var(--text-strong);background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 34px 8px 12px;appearance:none;cursor:pointer"><option>По популярности</option><option>Сначала новые</option><option>По алфавиту</option></select><span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted)">▾</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HEADER + ACCESSIBILITY ================= -->
+    <section id="header" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">08 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Шапка и доступность</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Логотип, переключатель размера шрифта «А А» (WCAG 2.1, раздел 4.7 ТЗ), call-центр и вопрос-ответ, поиск, зелёная CTA справа и золотая кнопка-бургер мегаменю.</p>
+
+      <!-- Header bar -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);overflow:hidden">
+        <div style="display:flex;align-items:center;gap:20px;padding:12px 20px">
+          <img src="assets/baiterek-logo.png" alt="Baiterek" style="height:44px;width:auto;flex:none">
+          <div style="min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text-strong);line-height:1.2">Единый портал</div><div style="font-size:12px;color:var(--text-muted)">поддержки бизнеса</div></div>
+          <nav style="display:flex;gap:20px;margin-left:20px;font-size:14px">
+            <a href="#" style="color:var(--color-primary);font-weight:500">Услуги</a>
+            <a href="#" style="color:var(--text)">База знаний</a>
+            <a href="#" style="color:var(--text)">Организации</a>
+            <a href="#" style="color:var(--text)">Новости</a>
+          </nav>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <!-- A A switcher (interactive) -->
+            <div style="display:flex;align-items:center;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden" role="group" aria-label="Размер шрифта">
+              <button onClick="{{ setFont0 }}" aria-label="Обычный шрифт" style="border:none;background:{{ fontBtn0Bg }};color:{{ fontBtn0Fg }};padding:7px 11px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">А</button>
+              <button onClick="{{ setFont1 }}" aria-label="Крупный шрифт" style="border:none;border-left:1px solid var(--border);background:{{ fontBtn1Bg }};color:{{ fontBtn1Fg }};padding:7px 11px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer">А</button>
+              <button onClick="{{ setFont2 }}" aria-label="Очень крупный шрифт" style="border:none;border-left:1px solid var(--border);background:{{ fontBtn2Bg }};color:{{ fontBtn2Fg }};padding:7px 11px;font-family:inherit;font-size:18px;font-weight:600;cursor:pointer">А</button>
+            </div>
+            <button aria-label="Вопрос-ответ" style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px" style-hover="background:var(--green-50);color:var(--color-primary)">?</button>
+            <button aria-label="Поиск" style="width:38px;height:38px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:var(--green-50);color:var(--color-primary)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--color-primary-hover)">Личный кабинет</button>
+            <button onClick="{{ toggleMega }}" aria-label="Меню" style="width:40px;height:40px;flex:none;background:var(--gold-500);border:none;border-radius:var(--radius-sm);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px" style-hover="background:var(--gold-600)">
+              <span style="width:18px;height:2px;background:#000"></span><span style="width:18px;height:2px;background:#000"></span><span style="width:18px;height:2px;background:#000"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Font-size live preview -->
+      <div style="margin-top:18px;background:var(--green-50);border:1px solid #BEDBC9;border-radius:var(--radius-sm);padding:18px 20px">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-primary);margin-bottom:8px">▲ Нажмите «А А» в шапке — размер текста ниже меняется вживую · сейчас {{ demoFontSize }}</div>
+        <p style="margin:0;color:var(--text-strong);line-height:1.6;font-size:{{ demoFontSize }}">Заём по программе «Экономика простых вещей» под 6% годовых. Слабовидящие пользователи могут увеличить размер шрифта, сохраняя структуру страницы и навигацию с клавиатуры.</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+        <div style="flex:1;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px"><div style="font-size:13px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Focus-ring клавиатуры</div><div style="font-size:12.5px;color:var(--text-muted)">Все интерактивные элементы получают <span style="font-family:var(--font-mono);color:var(--color-primary)">box-shadow: var(--focus)</span> при :focus-visible.</div></div>
+        <div style="flex:1;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px"><div style="font-size:13px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Контраст AA+</div><div style="font-size:12.5px;color:var(--text-muted)">#5B5B5B на #FFF ≈ 7.0:1 · #18794D на #FFF ≈ 4.9:1 · #000 на золоте ≈ 8.9:1.</div></div>
+        <div style="flex:1;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px"><div style="font-size:13px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Статус ≠ только цвет</div><div style="font-size:12.5px;color:var(--text-muted)">Иконка + текст дублируют цветовое кодирование статусов.</div></div>
+      </div>
+    </section>
+
+    <!-- ================= HERO ================= -->
+    <section id="hero" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">09 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Hero-блок</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Крупное фото (архитектура / люди) с градиентным затемнением под белый текст. Хлебные крошки — поверх фото.</p>
+      <div style="position:relative;height:380px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c7ccc8,#c7ccc8 12px,#d2d6d2 12px,#d2d6d2 24px);display:flex;align-items:center;justify-content:center"><span style="font-family:var(--font-mono);font-size:13px;color:#6f746f;background:rgba(255,255,255,.75);padding:6px 12px;border-radius:4px">фото: архитектура · люди · 1920×760</span></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,48,31,.92) 0%,rgba(13,74,47,.78) 42%,rgba(13,74,47,.15) 100%)"></div>
+        <div style="position:absolute;left:0;bottom:0;top:0;padding:36px 40px;display:flex;flex-direction:column;justify-content:space-between;max-width:640px">
+          <nav style="display:flex;align-items:center;gap:8px;font-size:13px;color:#CDE3D8">
+            <a href="#" style="color:var(--gold-300)">Главная</a><span style="opacity:.6">›</span>
+            <a href="#" style="color:var(--gold-300)">Господдержка</a><span style="opacity:.6">›</span>
+            <span style="color:#fff">Финансирование</span>
+          </nav>
+          <div>
+            <div style="display:inline-block;background:var(--gold-500);color:#000;font-size:12px;font-weight:600;padding:5px 12px;border-radius:var(--radius-sm);margin-bottom:16px">Приоритетная программа</div>
+            <h3 style="color:#fff;font-size:38px;line-height:1.12;font-weight:700;margin:0 0 14px;letter-spacing:-.01em">Льготное кредитование малого и среднего бизнеса</h3>
+            <p style="color:#D7E7DF;font-size:16px;line-height:1.55;margin:0 0 22px;max-width:520px">Займы до 3 млрд ₸ под 6% годовых через Фонд «Даму». Онлайн-подача заявки без визита в офис.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px 26px;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-primary-hover)">Подать заявку</button>
+              <button style="background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:var(--radius-sm);padding:11.5px 24px;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:rgba(255,255,255,.24)">Условия</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CARDS ================= -->
+    <section id="cards" style="padding:56px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">10 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Карточки</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Карточка услуги с зелёным CTA «Подать заявку» и карточка дочерней организации с логотипом и кратким описанием.</p>
+
+      <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Карточки услуг</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:36px">
+        <sc-for list="{{ serviceCards }}" as="s" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)" style-hover="box-shadow:var(--shadow-md);border-color:var(--green-300)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+              <span style="display:inline-block;background:var(--green-50);color:var(--color-primary);font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--radius-sm)">{{ s.tag }}</span>
+              <span style="font-size:11px;color:var(--text-faint)">{{ s.org }}</span>
+            </div>
+            <h4 style="font-size:17px;font-weight:600;color:var(--text-strong);margin:0 0 8px;line-height:1.3">{{ s.title }}</h4>
+            <p style="font-size:13.5px;color:var(--text-muted);margin:0 0 16px;line-height:1.5;flex:1">{{ s.desc }}</p>
+            <div style="display:flex;align-items:center;gap:14px;font-size:12px;color:var(--text-muted);margin-bottom:16px;padding-top:14px;border-top:1px solid var(--border)"><span>⏱ {{ s.term }}</span><span>◈ {{ s.amount }}</span></div>
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;width:100%" style-hover="background:var(--color-primary-hover)">Подать заявку</button>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Карточки дочерних организаций</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        <sc-for list="{{ orgCards }}" as="o" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;display:flex;gap:16px;align-items:flex-start" style-hover="border-color:var(--green-300);box-shadow:var(--shadow-sm)">
+            <div style="width:52px;height:52px;flex:none;border-radius:var(--radius-sm);background:{{ o.bg }};color:{{ o.fg }};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700">{{ o.abbr }}</div>
+            <div style="min-width:0"><div style="font-size:15px;font-weight:600;color:var(--text-strong);margin-bottom:4px">{{ o.name }}</div><p style="font-size:13px;color:var(--text-muted);margin:0 0 8px;line-height:1.5">{{ o.desc }}</p><a href="#" style="font-size:13px;font-weight:500;color:var(--color-primary)">Перейти в раздел →</a></div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ================= FOOTER + WIDGET ================= -->
+    <section id="footer" style="padding:56px 0 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-primary);font-weight:600;margin-bottom:10px">11 · Компоненты</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Футер и плавающий консультант</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 28px;max-width:660px">Тёмно-зелёный футер с контактами дочерних организаций и соцсетями. Плавающий виджет-консультант с золотой подписью «Получи консультацию!» — в правом нижнем углу (нажмите иконку робота).</p>
+      <div style="background:var(--footer-bg);border-radius:var(--radius-sm) var(--radius-sm) 0 0;overflow:hidden;color:var(--text-on-dark)">
+        <div style="padding:40px 40px 28px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px">
+          <div>
+            <img src="assets/baiterek-logo.png" alt="Baiterek" style="height:56px;width:auto;margin-bottom:14px;filter:brightness(0) invert(1) sepia(0);">
+            <p style="font-size:13px;color:#A9C7B8;line-height:1.6;margin:0 0 16px;max-width:260px">АО «Национальный управляющий холдинг «Байтерек» — институт развития Республики Казахстан.</p>
+            <div style="display:flex;gap:10px">
+              <span style="width:34px;height:34px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer">in</span>
+              <span style="width:34px;height:34px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer">f</span>
+              <span style="width:34px;height:34px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer">tg</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:14px">Организации</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:13px;color:#A9C7B8"><a href="#" style="color:#A9C7B8">Фонд «Даму»</a><a href="#" style="color:#A9C7B8">Банк Развития Казахстана</a><a href="#" style="color:#A9C7B8">KazakhExport</a><a href="#" style="color:#A9C7B8">Аграрная кредитная корпорация</a></div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:14px">Разделы</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:13px;color:#A9C7B8"><a href="#" style="color:#A9C7B8">Каталог услуг</a><a href="#" style="color:#A9C7B8">База знаний</a><a href="#" style="color:#A9C7B8">Новости</a><a href="#" style="color:#A9C7B8">Контакты</a></div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:14px">Контакт-центр</div>
+            <div style="font-size:22px;font-weight:700;color:var(--gold-300);margin-bottom:6px">1414</div>
+            <div style="font-size:13px;color:#A9C7B8;line-height:1.6">Ежедневно 8:00–20:00<br>info@baiterek.gov.kz<br>г. Астана, пр. Мәңгілік Ел, 55/22</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--footer-line);padding:16px 40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:#8AAF9B">
+          <span>© 2026 АО «НУХ «Байтерек». Все права защищены.</span>
+          <div style="display:flex;gap:20px"><a href="#" style="color:#8AAF9B">Политика конфиденциальности</a><a href="#" style="color:#8AAF9B">Карта сайта</a></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- ==================  ЭКРАНЫ  ======================== -->
+    <!-- =================================================== -->
+    <div style="padding:56px 0 24px">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-700);font-weight:600;margin-bottom:10px">Собранные экраны</div>
+      <h2 style="font-size:34px;font-weight:700;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">Компоненты в работе</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0;max-width:660px">Шесть ключевых экранов портала, собранных из токенов и компонентов системы. Адаптивная сетка, mobile-first.</p>
+    </div>
+
+    <!-- ===== SCREEN: HOME ===== -->
+    <section id="screen-home" data-screen-label="Главная" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Главная страница</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);background:var(--bg-muted)">
+        <!-- header -->
+        <div style="display:flex;align-items:center;gap:14px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--border)">
+          <img src="assets/baiterek-logo.png" style="height:34px"><b style="font-size:13px;color:var(--text-strong)">Единый портал</b>
+          <nav style="display:flex;gap:16px;font-size:13px;margin-left:8px"><a href="#" style="color:var(--color-primary);font-weight:500">Услуги</a><a href="#" style="color:var(--text)">База знаний</a><a href="#" style="color:var(--text)">Организации</a><a href="#" style="color:var(--text)">Новости</a></nav>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <div style="display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden"><span style="padding:5px 8px;font-size:12px;font-weight:600;color:var(--text)">А</span><span style="padding:5px 8px;font-size:14px;font-weight:600;background:var(--green-50);color:var(--color-primary)">А</span></div>
+            <span style="width:32px;height:32px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+            <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 14px;font-family:inherit;font-size:13px;font-weight:500">Кабинет</button>
+            <span style="width:34px;height:34px;background:var(--gold-500);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span style="width:15px;height:2px;background:#000"></span><span style="width:15px;height:2px;background:#000"></span><span style="width:15px;height:2px;background:#000"></span></span>
+          </div>
+        </div>
+        <!-- hero + search -->
+        <div style="position:relative;padding:48px 40px 56px;background:linear-gradient(90deg,rgba(8,48,31,.95),rgba(13,74,47,.7)),repeating-linear-gradient(45deg,#3a5a4a,#3a5a4a 12px,#43614f 12px,#43614f 24px)">
+          <div style="max-width:600px"><h3 style="color:#fff;font-size:32px;line-height:1.15;font-weight:700;margin:0 0 12px">70+ мер господдержки бизнеса в одном окне</h3><p style="color:#D7E7DF;font-size:15px;margin:0 0 22px">Найдите подходящую программу и подайте заявку онлайн.</p>
+          <div style="display:flex;background:#fff;border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);max-width:560px"><input placeholder="Поиск услуг, программ и материалов" style="flex:1;border:none;padding:14px 16px;font-family:inherit;font-size:14px;color:var(--text-strong)"><button style="background:var(--color-primary);color:#fff;border:none;padding:0 26px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer">Найти</button></div></div>
+        </div>
+        <!-- directions -->
+        <div style="padding:32px 40px">
+          <div style="font-size:19px;font-weight:600;color:var(--text-strong);margin-bottom:16px">Направления поддержки</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:36px">
+            <sc-for list="{{ directions }}" as="d" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 12px;text-align:center;cursor:pointer" style-hover="border-color:var(--green-300);box-shadow:var(--shadow-sm)">
+                <div style="width:44px;height:44px;margin:0 auto 10px;border-radius:var(--radius-sm);background:var(--green-50);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:20px">{{ d.icon }}</div>
+                <div style="font-size:12.5px;font-weight:500;color:var(--text-strong);line-height:1.3">{{ d.name }}</div>
+                <div style="font-size:11px;color:var(--text-faint);margin-top:3px">{{ d.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px"><div style="font-size:19px;font-weight:600;color:var(--text-strong)">Популярные услуги</div><a href="#" style="font-size:13px;color:var(--color-primary);font-weight:500">Весь каталог →</a></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px">
+            <sc-for list="{{ serviceCards }}" as="s" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="background:var(--green-50);color:var(--color-primary);font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--radius-sm)">{{ s.tag }}</span><span style="font-size:11px;color:var(--text-faint)">{{ s.org }}</span></div>
+                <div style="font-size:15px;font-weight:600;color:var(--text-strong);margin-bottom:6px">{{ s.title }}</div>
+                <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">{{ s.desc }}</div>
+                <button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px;width:100%;font-family:inherit;font-size:13px;font-weight:500">Подать заявку</button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:var(--gold-50);border:1px solid var(--gold-200);border-radius:var(--radius-sm);padding:22px 26px;display:flex;align-items:center;gap:20px"><div style="font-size:15px;color:var(--text-strong);flex:1"><b>7 дочерних организаций холдинга</b> — единая точка входа ко всем инструментам развития.</div><div style="display:flex;gap:10px">
+            <sc-for list="{{ orgAbbr }}" as="a" hint-placeholder-count="5"><span style="width:46px;height:46px;border-radius:var(--radius-sm);background:#fff;border:1px solid var(--gold-200);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--color-primary)">{{ a }}</span></sc-for>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN: CATALOG ===== -->
+    <section id="screen-catalog" data-screen-label="Каталог" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Каталог услуг · фильтры, сортировка, пагинация</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);background:var(--bg-muted)">
+        <div style="padding:20px 28px 0"><nav style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><a href="#" style="color:var(--color-primary)">Главная</a><span style="color:var(--text-faint)">›</span><span style="color:var(--text-muted)">Каталог услуг</span></nav><h3 style="font-size:26px;font-weight:600;color:var(--text-strong);margin:0 0 4px">Каталог услуг</h3><p style="font-size:14px;color:var(--text-muted);margin:0 0 20px">Найдено 74 услуги от 7 организаций холдинга</p></div>
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:24px;padding:0 28px 28px">
+          <!-- filters -->
+          <aside style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;align-self:start">
+            <div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:14px">Фильтры</div>
+            <sc-for list="{{ filterGroups }}" as="g" hint-placeholder-count="3">
+              <div style="margin-bottom:18px"><div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">{{ g.name }}</div>
+                <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3"><label style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-strong);margin-bottom:9px;cursor:pointer"><span style="width:17px;height:17px;border-radius:3px;flex:none;background:{{ o.on }};border:1.5px solid {{ o.border }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">{{ o.check }}</span>{{ o.label }}<span style="margin-left:auto;font-size:11px;color:var(--text-faint)">{{ o.n }}</span></label></sc-for>
+              </div>
+            </sc-for>
+            <button style="width:100%;background:transparent;color:var(--color-primary);border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:9px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer">Применить</button>
+          </aside>
+          <!-- results -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="display:flex;gap:8px;flex-wrap:wrap"><span style="display:inline-flex;align-items:center;gap:6px;background:var(--green-50);color:var(--color-primary);font-size:12px;padding:5px 10px;border-radius:var(--radius-pill);border:1px solid #BEDBC9">Финансирование ×</span><span style="display:inline-flex;align-items:center;gap:6px;background:var(--green-50);color:var(--color-primary);font-size:12px;padding:5px 10px;border-radius:var(--radius-pill);border:1px solid #BEDBC9">Даму ×</span></div><div style="position:relative"><select style="font-family:inherit;font-size:13px;color:var(--text-strong);background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 30px 7px 12px;appearance:none"><option>По популярности</option><option>Сначала новые</option></select><span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted);font-size:11px">▾</span></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
+              <sc-for list="{{ catalogCards }}" as="s" hint-placeholder-count="6">
+                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="background:var(--green-50);color:var(--color-primary);font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:var(--radius-sm)">{{ s.tag }}</span><span style="font-size:10.5px;color:var(--text-faint)">{{ s.org }}</span></div>
+                  <div style="font-size:14.5px;font-weight:600;color:var(--text-strong);margin-bottom:6px;line-height:1.3">{{ s.title }}</div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;flex:1;line-height:1.5">{{ s.desc }}</div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border)"><span style="font-size:11px;color:var(--text-muted)">⏱ {{ s.term }}</span><a href="#" style="font-size:13px;font-weight:500;color:var(--color-primary)">Подробнее →</a></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:center;gap:6px"><span style="width:34px;height:34px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px">‹</span><span style="width:34px;height:34px;background:var(--color-primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600">1</span><span style="width:34px;height:34px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-strong);font-size:13px">2</span><span style="width:34px;height:34px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-strong);font-size:13px">3</span><span style="width:34px;height:34px;border:1px solid var(--border-strong);background:#fff;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-strong);font-size:13px">›</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN: SERVICE CARD ===== -->
+    <section id="screen-service" data-screen-label="Карточка услуги" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Карточка услуги</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);background:#fff">
+        <div style="padding:24px 32px 0"><nav style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:16px;flex-wrap:wrap"><a href="#" style="color:var(--color-primary)">Главная</a><span style="color:var(--text-faint)">›</span><a href="#" style="color:var(--color-primary)">Каталог</a><span style="color:var(--text-faint)">›</span><a href="#" style="color:var(--color-primary)">Финансирование</a><span style="color:var(--text-faint)">›</span><span style="color:var(--text-muted)">Льготное кредитование МСБ</span></nav></div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:32px;padding:0 32px 32px">
+          <div>
+            <div style="display:flex;gap:8px;margin-bottom:14px"><span style="background:var(--gold-500);color:#000;font-size:11px;font-weight:600;padding:4px 11px;border-radius:var(--radius-sm)">Приоритетная</span><span style="background:var(--green-50);color:var(--color-primary);font-size:11px;font-weight:600;padding:4px 11px;border-radius:var(--radius-sm)">Финансирование</span></div>
+            <h3 style="font-size:28px;font-weight:600;color:var(--text-strong);margin:0 0 8px;line-height:1.2">Льготное кредитование малого и среднего бизнеса</h3>
+            <p style="font-size:14px;color:var(--text-muted);margin:0 0 24px">Фонд развития предпринимательства «Даму»</p>
+            <div style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:24px">Программа предоставляет предпринимателям доступ к заёмному финансированию по сниженной ставке через банки-партнёры. Средства направляются на пополнение оборотных средств и инвестиционные цели.</div>
+            <sc-for list="{{ serviceSections }}" as="sec" hint-placeholder-count="4">
+              <div style="margin-bottom:22px"><div style="font-size:17px;font-weight:600;color:var(--text-strong);margin-bottom:10px">{{ sec.h }}</div>
+                <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3"><div style="display:flex;gap:10px;font-size:14px;color:var(--text);margin-bottom:8px;line-height:1.5"><span style="color:var(--color-primary);font-weight:700;flex:none">✓</span>{{ it }}</div></sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <aside style="align-self:start;position:sticky;top:16px">
+            <div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius-sm);padding:22px">
+              <sc-for list="{{ serviceFacts }}" as="f" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text-muted)">{{ f.k }}</span><span style="color:var(--text-strong);font-weight:600;text-align:right">{{ f.v }}</span></div></sc-for>
+              <button style="width:100%;background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px;margin-top:18px;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-primary-hover)">Подать заявку</button>
+              <button style="width:100%;background:transparent;color:var(--color-primary);border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:11px;margin-top:10px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer">В избранное</button>
+            </div>
+            <div style="background:var(--gold-50);border:1px solid var(--gold-200);border-radius:var(--radius-sm);padding:16px;margin-top:14px;font-size:13px;color:var(--text)"><b>Нужна помощь?</b><br>Консультант подберёт программу под ваш бизнес.<br><a href="#" style="color:var(--gold-700);font-weight:600;display:inline-block;margin-top:6px">Получить консультацию →</a></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN: CABINET ===== -->
+    <section id="screen-cabinet" data-screen-label="Личный кабинет" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Личный кабинет · таблица заявок, статусы, документы</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);background:var(--bg-muted);display:grid;grid-template-columns:230px 1fr">
+        <!-- sidebar -->
+        <aside style="background:var(--footer-bg);color:#fff;padding:22px 14px">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 8px 18px;border-bottom:1px solid var(--footer-line);margin-bottom:14px"><span style="width:38px;height:38px;border-radius:50%;background:var(--gold-500);color:#000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">АТ</span><div style="min-width:0"><div style="font-size:13px;font-weight:600">ТОО «Агротех»</div><div style="font-size:11px;color:var(--gold-300)">ИП · Астана</div></div></div>
+          <sc-for list="{{ cabNav }}" as="n" hint-placeholder-count="6"><div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);font-size:13.5px;margin-bottom:2px;background:{{ n.bg }};color:{{ n.fg }};cursor:pointer"><span style="width:16px;text-align:center">{{ n.icon }}</span>{{ n.label }}<sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;background:var(--gold-500);color:#000;font-size:11px;font-weight:700;padding:1px 7px;border-radius:var(--radius-pill)">{{ n.badge }}</span></sc-if></div></sc-for>
+        </aside>
+        <!-- main -->
+        <div style="padding:26px 30px">
+          <div style="font-size:22px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Мои заявки</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Отслеживайте статусы и обменивайтесь документами с организациями</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+            <sc-for list="{{ cabStats }}" as="st" hint-placeholder-count="4"><div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px"><div style="font-size:26px;font-weight:700;color:{{ st.color }};line-height:1">{{ st.n }}</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">{{ st.label }}</div></div></sc-for>
+          </div>
+          <!-- table -->
+          <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:22px">
+            <div style="display:grid;grid-template-columns:70px 1fr 150px 160px 90px;gap:12px;padding:12px 18px;background:var(--bg-muted);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em"><span>№</span><span>Услуга</span><span>Организация</span><span>Статус</span><span></span></div>
+            <sc-for list="{{ cabRows }}" as="r" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:70px 1fr 150px 160px 90px;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);align-items:center;font-size:13px">
+                <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px">{{ r.id }}</span>
+                <span style="color:var(--text-strong);font-weight:500">{{ r.service }}</span>
+                <span style="color:var(--text-muted);font-size:12.5px">{{ r.org }}</span>
+                <span><span style="display:inline-flex;align-items:center;gap:6px;background:{{ r.badgeBg }};color:{{ r.badgeFg }};border:1px solid {{ r.badgeBorder }};border-radius:var(--radius-pill);padding:4px 10px;font-size:12px;font-weight:500"><span style="font-weight:700">{{ r.glyph }}</span>{{ r.status }}</span></span>
+                <a href="#" style="font-size:12.5px;color:var(--color-primary);font-weight:500">Открыть</a>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="background:#fff;border:2px dashed var(--border-strong);border-radius:var(--radius-sm);padding:24px;text-align:center"><div style="font-size:28px;color:var(--color-primary);margin-bottom:6px">⬆</div><div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:4px">Загрузите документы</div><div style="font-size:12px;color:var(--text-muted)">Перетащите файлы или <a href="#" style="color:var(--color-primary)">выберите</a> · PDF, JPG до 10 МБ</div></div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px"><div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:12px">Уведомления</div>
+              <div style="display:flex;gap:10px;font-size:12.5px;color:var(--text);margin-bottom:10px"><span style="color:var(--success);font-weight:700">✓</span><div>Заявка №2401 одобрена <span style="color:var(--text-faint)">· 2 ч назад</span></div></div>
+              <div style="display:flex;gap:10px;font-size:12.5px;color:var(--text);margin-bottom:10px"><span style="color:var(--warning-dot);font-weight:700">●</span><div>По №2418 требуется отчётность <span style="color:var(--text-faint)">· вчера</span></div></div>
+              <div style="display:flex;gap:10px;font-size:12.5px;color:var(--text)"><span style="color:var(--info);font-weight:700">i</span><div>Заявка №2420 передана в BPM <span style="color:var(--text-faint)">· 3 дня</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN: MULTI-STEP FORM ===== -->
+    <section id="screen-form" data-screen-label="Форма заявки" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Многошаговая форма заявки · прогресс-индикатор (кнопки «Назад / Далее» работают)</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);background:#fff">
+        <div style="background:var(--footer-bg);padding:22px 32px;color:#fff"><div style="font-size:12px;color:var(--gold-300);margin-bottom:4px">Подача заявки</div><div style="font-size:20px;font-weight:600">Льготное кредитование МСБ — Фонд «Даму»</div></div>
+        <!-- progress -->
+        <div style="padding:26px 32px 8px">
+          <div style="display:flex;align-items:center;margin-bottom:6px">
+            <sc-for list="{{ formSteps }}" as="st" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;flex:{{ st.flex }}">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:none">
+                  <div style="width:34px;height:34px;border-radius:50%;background:{{ st.circleBg }};color:{{ st.circleFg }};border:2px solid {{ st.circleBorder }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600">{{ st.mark }}</div>
+                </div>
+                <sc-if value="{{ st.showLine }}" hint-placeholder-val="{{ true }}"><div style="flex:1;height:3px;background:{{ st.lineBg }};margin:0 6px;border-radius:2px;align-self:flex-start;margin-top:16px"></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-muted)"><span style="width:25%">Тип заявителя</span><span style="width:25%;text-align:center">Данные компании</span><span style="width:25%;text-align:center">Параметры займа</span><span style="width:25%;text-align:right">Документы · ЭЦП</span></div>
+        </div>
+        <!-- step content -->
+        <div style="padding:20px 32px 8px;min-height:210px">
+          <div style="font-size:13px;color:var(--color-primary);font-weight:600;margin-bottom:16px">Шаг {{ formStep }} из 4 · {{ stepTitle }}</div>
+          <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:14px;flex-wrap:wrap"><label style="flex:1;min-width:220px;border:1.5px solid var(--color-primary);background:var(--green-50);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:center;cursor:pointer"><span style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--color-primary);display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:var(--color-primary)"></span></span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Юридическое лицо</div><div style="font-size:12px;color:var(--text-muted)">ТОО, АО и др.</div></div></label><label style="flex:1;min-width:220px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:center;cursor:pointer"><span style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border-strong)"></span><div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Индивидуальный предприниматель</div><div style="font-size:12px;color:var(--text-muted)">ИП</div></div></label></div></sc-if>
+          <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ true }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Наименование</label><input value="ТОО «Агротех Астана»" style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 13px"></div><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">БИН</label><input value="120400123456" style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:10px 13px;box-shadow:var(--focus)"></div><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Отрасль</label><div style="position:relative"><select style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 34px 10px 13px;appearance:none"><option>Сельское хозяйство</option><option>Переработка</option></select><span style="position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted);font-size:11px">▾</span></div></div><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Регион</label><div style="position:relative"><select style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 34px 10px 13px;appearance:none"><option>г. Астана</option><option>г. Алматы</option></select><span style="position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted);font-size:11px">▾</span></div></div></div></sc-if>
+          <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Сумма займа, ₸</label><input value="45 000 000" style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 13px"></div><div><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Срок, мес.</label><input value="60" style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 13px"></div><div style="grid-column:1/3"><label style="display:block;font-size:13px;font-weight:500;color:var(--text-strong);margin-bottom:6px">Цель финансирования</label><textarea rows="2" style="width:100%;font-family:inherit;font-size:14px;color:var(--text-strong);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:10px 13px;resize:vertical">Закуп оборудования для переработки зерна.</textarea></div></div></sc-if>
+          <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}"><div><div style="background:#fff;border:2px dashed var(--border-strong);border-radius:var(--radius-sm);padding:22px;text-align:center;margin-bottom:14px"><div style="font-size:26px;color:var(--color-primary)">⬆</div><div style="font-size:14px;font-weight:600;color:var(--text-strong)">Загрузите документы</div><div style="font-size:12px;color:var(--text-muted)">Свидетельство о регистрации, финотчётность, бизнес-план</div></div><label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-strong);cursor:pointer"><span style="width:20px;height:20px;border-radius:var(--radius-xs);background:var(--color-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px">✓</span>Подписать заявку электронной цифровой подписью (ЭЦП)</label></div></sc-if>
+        </div>
+        <!-- nav -->
+        <div style="display:flex;justify-content:space-between;padding:18px 32px;border-top:1px solid var(--border);background:var(--bg-muted)">
+          <button onClick="{{ prevStep }}" style="background:transparent;color:var(--color-primary);border:1.5px solid var(--color-primary);border-radius:var(--radius-sm);padding:10px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--green-50)">← Назад</button>
+          <button onClick="{{ nextStep }}" style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 26px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--color-primary-hover)">{{ nextLabel }}</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCREEN: MEGA MENU ===== -->
+    <section id="screen-mega" data-screen-label="Мегаменю" style="margin-bottom:44px">
+      <div style="font-size:13px;font-weight:600;color:var(--color-primary);margin-bottom:10px">◱ Мегаменю · открытое состояние</div>
+      <div style="border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-md);display:flex;min-height:420px">
+        <!-- dark green side bar -->
+        <div style="width:64px;flex:none;background:var(--footer-bg);display:flex;flex-direction:column;align-items:center;padding:18px 0;color:#fff">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:auto">
+            <span style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer">in</span>
+            <span style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer">f</span>
+            <span style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer">tg</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600">
+            <span style="padding:6px;border-radius:var(--radius-sm);background:var(--gold-500);color:#000;text-align:center">Рус</span>
+            <span style="padding:6px;border-radius:var(--radius-sm);color:#C7DED2;text-align:center;cursor:pointer">Қаз</span>
+            <span style="padding:6px;border-radius:var(--radius-sm);color:#C7DED2;text-align:center;cursor:pointer">Eng</span>
+          </div>
+        </div>
+        <!-- gold panel -->
+        <div style="flex:1;background:var(--gold-500);padding:30px 36px;color:#000">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><img src="assets/baiterek-logo.png" style="height:44px"><span style="width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer">×</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+            <sc-for list="{{ megaCols }}" as="c" hint-placeholder-count="4">
+              <div><div style="font-size:14px;font-weight:700;color:#000;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.18)">{{ c.h }}</div>
+                <sc-for list="{{ c.links }}" as="l" hint-placeholder-count="4"><a href="#" style="display:block;font-size:13.5px;color:#2a2a1e;padding:5px 0" style-hover="color:var(--green-800)">{{ l }}</a></sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:26px;padding-top:18px;border-top:1px solid rgba(0,0,0,.18);display:flex;gap:12px;align-items:center"><span style="font-size:13px;font-weight:600">Не нашли услугу?</span><button style="background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 18px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer">Получить консультацию</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TOKENS APPENDIX ================= -->
+    <section id="tokens" style="padding:56px 0 24px">
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-700);font-weight:600;margin-bottom:10px">Интеграция</div>
+      <h2 style="font-size:32px;font-weight:600;color:var(--text-strong);margin:0 0 8px;letter-spacing:-.01em">CSS Custom Properties</h2>
+      <p style="font-size:16px;color:var(--text-muted);margin:0 0 24px;max-width:660px">Готовый файл токенов для интеграции. Поместите в <span style="font-family:var(--font-mono);color:var(--color-primary)">app/globals.css</span> проекта Next.js/TypeScript — компоненты выше построены на этих переменных.</p>
+      <div style="background:#0B241A;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--footer-line)">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="width:11px;height:11px;border-radius:50%;background:#C0392B"></span><span style="width:11px;height:11px;border-radius:50%;background:#D3B961"></span><span style="width:11px;height:11px;border-radius:50%;background:#18794D"></span><span style="margin-left:8px;font-family:var(--font-mono);font-size:12px;color:#8AAF9B">tokens.css</span></div>
+        <pre style="margin:0;padding:22px 24px;overflow-x:auto;font-family:var(--font-mono);font-size:12.5px;line-height:1.65;color:#D7E7DF">:root {
+  <span style="color:#8AAF9B">/* ── Primary · зелёный (рост / ствол) ── */</span>
+  --green-50:#EAF3EE;  --green-100:#C9E2D5; --green-200:#A3CEB8;
+  --green-300:#74B393; --green-400:#429A70; --green-500:#18794D;
+  --green-600:#146843; --green-700:#135F3D; --green-800:#0D4A2F; --green-900:#08301F;
+
+  <span style="color:#8AAF9B">/* ── Secondary · золото-охра (крона) ── */</span>
+  --gold-50:#FBF8EF;   --gold-100:#F5EDD3;  --gold-200:#ECDFB0;
+  --gold-300:#E1CE89;  --gold-400:#D9C575;  --gold-500:#D3B961;
+  --gold-600:#C0A544;  --gold-700:#A08636;  --gold-800:#7C6829; --gold-900:#5A4B1D;
+
+  <span style="color:#8AAF9B">/* ── Роли ── */</span>
+  --color-primary:var(--green-500);         <span style="color:#8AAF9B">/* CTA, ссылки, навигация */</span>
+  --color-primary-hover:var(--green-700);
+  --color-primary-active:var(--green-800);
+  --color-secondary:var(--gold-500);        <span style="color:#8AAF9B">/* мегаменю, бейджи, акценты */</span>
+  --color-secondary-hover:var(--gold-600);
+
+  <span style="color:#8AAF9B">/* ── Нейтрали ── */</span>
+  --bg:#FFFFFF; --bg-muted:#F7F7F5; --bg-sunken:#EFEEEA;
+  --border:#E5E4E0; --border-strong:#D6D5CF;
+  --text:#5B5B5B; --text-strong:#3A3A38; --text-muted:#8A8A85; --text-faint:#AFAEA8;
+  --text-on-gold:#000000; --text-on-primary:#FFFFFF; --footer-bg:#0D4A2F;
+
+  <span style="color:#8AAF9B">/* ── Семантика (цвет + иконка + текст) ── */</span>
+  --success:#18794D; --success-bg:#EAF3EE;   <span style="color:#8AAF9B">/* ✓ Одобрено */</span>
+  --warning:#A08636; --warning-dot:#D3B961;  <span style="color:#8AAF9B">/* ● / ⚠ На рассмотрении */</span>
+  --error:#C0392B;   --error-bg:#FBEBE9;      <span style="color:#8AAF9B">/* ✕ Отклонено */</span>
+  --info:#5B5B5B;    --info-bg:#F2F2F0;
+
+  <span style="color:#8AAF9B">/* ── Типографика · Golos Text ── */</span>
+  --font-sans:'Golos Text',system-ui,sans-serif;
+  --text-h1:40px/48px; --text-h2:32px/40px; --text-h3:24px/32px; --text-h4:20px/28px;
+  --text-body:16px/24px; --text-sm:14px/20px; --text-caption:12px/16px;
+
+  <span style="color:#8AAF9B">/* ── Spacing · сетка 8px ── */</span>
+  --space-1:4px;  --space-2:8px;  --space-3:12px; --space-4:16px; --space-5:24px;
+  --space-6:32px; --space-7:48px; --space-8:64px; --space-9:96px;
+
+  <span style="color:#8AAF9B">/* ── Радиусы (минимальные) · тени · focus ── */</span>
+  --radius-xs:2px; --radius-sm:4px; --radius-md:6px; --radius-lg:8px; --radius-pill:999px;
+  --shadow-sm:0 1px 2px rgba(13,74,47,.06);
+  --shadow-md:0 4px 14px rgba(13,74,47,.10);
+  --shadow-lg:0 12px 34px rgba(13,74,47,.14);
+  --focus:0 0 0 3px rgba(24,121,77,.35);
+}</pre>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px"><div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:8px">Tailwind (опционально)</div><pre style="margin:0;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--text);white-space:pre-wrap">theme.extend.colors = {
+  primary: 'var(--color-primary)',
+  gold: 'var(--color-secondary)',
+  // ...остальные роли через var()
+}</pre></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px"><div style="font-size:14px;font-weight:600;color:var(--text-strong);margin-bottom:8px">Пример React-компонента</div><pre style="margin:0;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;color:var(--text);white-space:pre-wrap">&lt;button style={ {
+  background: 'var(--color-primary)',
+  color: '#fff',
+  borderRadius: 'var(--radius-sm)',
+  padding: '11px 22px'
+} }&gt;Подать заявку&lt;/button&gt;</pre></div>
+      </div>
+      <div style="text-align:center;padding:32px 0 8px;color:var(--text-faint);font-size:12.5px">Дизайн-система «Единый портал поддержки бизнеса» · АО «НУХ «Байтерек» · 2026</div>
+    </section>
+
+    <!--SECTIONS-END--></div>
+  </main>
+</div>
+
+<!-- Floating consultant widget -->
+<div style="position:fixed;right:24px;bottom:24px;z-index:60;display:flex;align-items:center;gap:12px">
+  <sc-if value="{{ consultantOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:280px;padding:18px 18px 16px;position:relative">
+      <div style="position:absolute;top:12px;right:12px;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1" onClick="{{ toggleConsultant }}">×</div>
+      <div style="font-weight:600;color:var(--text-strong);margin-bottom:6px;font-size:15px">Получи консультацию!</div>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;line-height:1.5">Подберём меру господдержки и поможем подать заявку.</p>
+      <button style="width:100%;background:var(--color-primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--color-primary-hover)">Начать чат</button>
+    </div>
+  </sc-if>
+  <button onClick="{{ toggleConsultant }}" style="width:64px;height:64px;flex:none;border-radius:50%;border:3px solid #fff;background:var(--color-primary);color:var(--gold-300);cursor:pointer;box-shadow:var(--shadow-md);animation:bt-pulse 2.6s infinite;display:flex;align-items:center;justify-content:center" aria-label="Консультант">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="13" r="1.2" fill="currentColor"/><circle cx="15" cy="13" r="1.2" fill="currentColor"/><path d="M9.5 16h5"/></svg>
+  </button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { fontLevel: 1, megaOpen: false, formStep: 2, consultantOpen: false, cabinetTab: 'apps' };
+
+  renderVals() {
+    const fontPx = [15, 17, 20][this.state.fontLevel];
+    const greenScale = ['50','100','200','300','400','500','600','700','800','900'].map(s => ({
+      step: s, token: '--green-' + s, hex: this._green(s), onDark: (+s) >= 400
+    }));
+    const goldScale = ['50','100','200','300','400','500','600','700','800','900'].map(s => ({
+      step: s, token: '--gold-' + s, hex: this._gold(s), onDark: (+s) >= 700
+    }));
+    const neutralScale = [
+      {name:'Background', token:'--bg', hex:'#FFFFFF', onDark:false, note:'Основной фон'},
+      {name:'Muted', token:'--bg-muted', hex:'#F7F7F5', onDark:false, note:'Секции, карточки'},
+      {name:'Sunken', token:'--bg-sunken', hex:'#EFEEEA', onDark:false, note:'Поля, разделители'},
+      {name:'Border', token:'--border', hex:'#E5E4E0', onDark:false, note:'Границы'},
+      {name:'Text muted', token:'--text-muted', hex:'#8A8A85', onDark:true, note:'Вторичный текст'},
+      {name:'Text', token:'--text', hex:'#5B5B5B', onDark:true, note:'Основной текст'},
+      {name:'Text strong', token:'--text-strong', hex:'#3A3A38', onDark:true, note:'Заголовки'},
+      {name:'Footer', token:'--footer-bg', hex:'#0D4A2F', onDark:true, note:'Тёмно-зелёный футер'}
+    ];
+    const semantic = [
+      {name:'Success · Одобрено', token:'--success', hex:'#18794D', onDark:true, glyph:'✓'},
+      {name:'Warning · Внимание', token:'--warning-dot', hex:'#D3B961', onDark:false, glyph:'●'},
+      {name:'Error · Отклонено', token:'--error', hex:'#C0392B', onDark:true, glyph:'✕'},
+      {name:'Info · Нейтрально', token:'--info', hex:'#5B5B5B', onDark:true, glyph:'i'}
+    ];
+    const typeScale = [
+      {name:'H1', spec:'40 / 48 · 700', size:'40px', line:'48px', weight:700, sample:'Меры государственной поддержки'},
+      {name:'H2', spec:'32 / 40 · 600', size:'32px', line:'40px', weight:600, sample:'Каталог услуг холдинга'},
+      {name:'H3', spec:'24 / 32 · 600', size:'24px', line:'32px', weight:600, sample:'Карточка услуги'},
+      {name:'H4', spec:'20 / 28 · 600', size:'20px', line:'28px', weight:600, sample:'Условия получения'},
+      {name:'Body L', spec:'18 / 28 · 400', size:'18px', line:'28px', weight:400, sample:'Крупный вводный текст для описаний услуг и подзаголовков разделов.'},
+      {name:'Body', spec:'16 / 24 · 400', size:'16px', line:'24px', weight:400, sample:'Основной текст интерфейса. Кәсіпкерлерге арналған қолдау шаралары — казахская кириллица.'},
+      {name:'Small', spec:'14 / 20 · 400', size:'14px', line:'20px', weight:400, sample:'Вспомогательный текст, подписи полей и метаданные.'},
+      {name:'Caption', spec:'12 / 16 · 500', size:'12px', line:'16px', weight:500, sample:'ХЛЕБНЫЕ КРОШКИ · МЕТКИ · CAPTION'}
+    ];
+    const spaceScale = ['1','2','3','4','5','6','7','8','9'].map((n,i) => ({
+      token:'--space-'+n, px:[4,8,12,16,24,32,48,64,96][i]+'px', w:[4,8,12,16,24,32,48,64,96][i]
+    }));
+    const radiusScale = [
+      {token:'--radius-xs', px:'2px', v:2}, {token:'--radius-sm', px:'4px', v:4},
+      {token:'--radius-md', px:'6px', v:6}, {token:'--radius-lg', px:'8px', v:8},
+      {token:'--radius-pill', px:'999px', v:16}
+    ];
+    const toc = [
+      {label:'Основы', items:[
+        {href:'#brand', text:'Бренд'}, {href:'#colors', text:'Цветовая палитра'},
+        {href:'#typography', text:'Типографика'}, {href:'#spacing', text:'Сетка и форма'}]},
+      {label:'Компоненты', items:[
+        {href:'#buttons', text:'Кнопки'}, {href:'#forms', text:'Поля форм'},
+        {href:'#status', text:'Статусы и бейджи'}, {href:'#nav', text:'Навигация'},
+        {href:'#header', text:'Шапка · доступность'}, {href:'#hero', text:'Hero'},
+        {href:'#cards', text:'Карточки'}, {href:'#footer', text:'Футер · виджет'}]},
+      {label:'Экраны', items:[
+        {href:'#screen-home', text:'Главная'}, {href:'#screen-catalog', text:'Каталог услуг'},
+        {href:'#screen-service', text:'Карточка услуги'}, {href:'#screen-cabinet', text:'Личный кабинет'},
+        {href:'#screen-form', text:'Форма заявки'}, {href:'#screen-mega', text:'Мегаменю'}]},
+      {label:'Интеграция', items:[{href:'#tokens', text:'CSS-токены'}]}
+    ];
+    const fb = (lvl) => this.state.fontLevel === lvl
+      ? {bg:'var(--green-50)', fg:'var(--color-primary)'} : {bg:'#fff', fg:'var(--text)'};
+    const serviceCards = [
+      {tag:'Финансирование', org:'Даму', title:'Льготное кредитование МСБ', desc:'Займы под 6% годовых на пополнение оборотных средств и инвестиции.', term:'до 10 дней', amount:'до 3 млрд ₸'},
+      {tag:'Гарантии', org:'Даму', title:'Гарантирование по кредитам', desc:'Гарантия до 85% при нехватке залогового обеспечения для банка.', term:'до 5 дней', amount:'до 85%'},
+      {tag:'Экспорт', org:'KazakhExport', title:'Страхование экспортных сделок', desc:'Защита от неплатежа иностранного покупателя и политических рисков.', term:'до 14 дней', amount:'до 90%'}
+    ];
+    const orgCards = [
+      {abbr:'ДА', bg:'var(--green-50)', fg:'var(--color-primary)', name:'Фонд «Даму»', desc:'Поддержка и развитие малого и среднего предпринимательства.'},
+      {abbr:'БР', bg:'var(--gold-100)', fg:'var(--gold-700)', name:'Банк Развития Казахстана', desc:'Финансирование крупных инвестиционных и инфраструктурных проектов.'},
+      {abbr:'KE', bg:'var(--green-50)', fg:'var(--color-primary)', name:'KazakhExport', desc:'Страховая поддержка экспорта несырьевых товаров и услуг.'}
+    ];
+    const directions = [
+      {icon:'₸', name:'Финансирование', count:'24 услуги'}, {icon:'◈', name:'Гарантии', count:'11 услуг'},
+      {icon:'⇄', name:'Экспорт', count:'9 услуг'}, {icon:'✦', name:'Гранты', count:'8 услуг'},
+      {icon:'▤', name:'Лизинг', count:'6 услуг'}, {icon:'✎', name:'Консультации', count:'16 услуг'}
+    ];
+    const orgAbbr = ['ДА','БР','KE','АК','КФ','QI','ИФ'];
+    const cb = (on) => on ? {on:'var(--color-primary)', border:'var(--color-primary)', check:'✓'} : {on:'#fff', border:'var(--border-strong)', check:''};
+    const filterGroups = [
+      {name:'Категория', opts:[{...cb(true),label:'Финансирование',n:24},{...cb(false),label:'Гарантии',n:11},{...cb(false),label:'Экспорт',n:9},{...cb(false),label:'Гранты',n:8}]},
+      {name:'Организация', opts:[{...cb(true),label:'Фонд «Даму»',n:31},{...cb(false),label:'БРК',n:12},{...cb(false),label:'KazakhExport',n:9}]},
+      {name:'Форма поддержки', opts:[{...cb(false),label:'Заём',n:28},{...cb(false),label:'Субсидия',n:14},{...cb(false),label:'Гарантия',n:11}]}
+    ];
+    const catalogCards = [
+      {tag:'Финансы', org:'Даму', title:'Льготное кредитование МСБ', desc:'Займы под 6% на пополнение оборотных средств.', term:'до 10 дней'},
+      {tag:'Финансы', org:'Даму', title:'Экономика простых вещей', desc:'Инвестиционные займы для переработки и АПК.', term:'до 15 дней'},
+      {tag:'Гарантии', org:'Даму', title:'Гарантирование по кредитам', desc:'Гарантия до 85% при нехватке залога.', term:'до 5 дней'},
+      {tag:'Финансы', org:'БРК', title:'Проектное финансирование', desc:'Крупные инвестпроекты от 7 млрд ₸.', term:'до 30 дней'},
+      {tag:'Экспорт', org:'KazakhExport', title:'Страхование экспорта', desc:'Защита от неплатежа покупателя.', term:'до 14 дней'},
+      {tag:'Субсидии', org:'АКК', title:'Субсидирование ставки', desc:'Возмещение части процентной ставки.', term:'до 20 дней'}
+    ];
+    const serviceSections = [
+      {h:'Условия получения', items:['Резидент РК, зарегистрированный ИП или юрлицо','Отсутствие налоговой задолженности','Срок деятельности от 6 месяцев']},
+      {h:'Необходимые документы', items:['Свидетельство о государственной регистрации','Финансовая отчётность за последний год','Бизнес-план или технико-экономическое обоснование']},
+      {h:'Результат оказания услуги', items:['Решение банка-партнёра о выдаче займа','Договор займа с подписанием ЭЦП']}
+    ];
+    const serviceFacts = [
+      {k:'Сумма', v:'до 3 млрд ₸'}, {k:'Ставка', v:'6% годовых'}, {k:'Срок займа', v:'до 7 лет'},
+      {k:'Рассмотрение', v:'до 10 дней'}, {k:'Форма', v:'Заём'}
+    ];
+    const navItem = (icon,label,active,badge) => ({icon,label,badge:badge||false, bg: active?'rgba(211,185,97,.16)':'transparent', fg: active?'#fff':'#C7DED2'});
+    const cabNav = [
+      navItem('◔','Профиль',false), navItem('▤','Мои заявки',true,'6'), navItem('❒','Документы',false,'3'),
+      navItem('◈','Уведомления',false,'2'), navItem('∑','Расчёты',false), navItem('◷','Бронирования',false)
+    ];
+    const cabStats = [
+      {n:'6', label:'Всего заявок', color:'var(--text-strong)'}, {n:'2', label:'Одобрено', color:'var(--success)'},
+      {n:'3', label:'На рассмотрении', color:'var(--warning)'}, {n:'1', label:'Отклонено', color:'var(--error)'}
+    ];
+    const sB = (t) => ({
+      approved:{badgeBg:'var(--success-bg)',badgeFg:'var(--success)',badgeBorder:'#BEDBC9',glyph:'✓',status:'Одобрено'},
+      review:{badgeBg:'var(--warning-bg)',badgeFg:'var(--warning)',badgeBorder:'#E6D9AC',glyph:'●',status:'На рассмотрении'},
+      attention:{badgeBg:'var(--warning-bg)',badgeFg:'var(--warning)',badgeBorder:'#E6D9AC',glyph:'⚠',status:'Требует внимания'},
+      rejected:{badgeBg:'var(--error-bg)',badgeFg:'var(--error)',badgeBorder:'#EBC9C4',glyph:'✕',status:'Отклонено'}
+    })[t];
+    const cabRows = [
+      {id:'2401', service:'Льготное кредитование МСБ', org:'Даму', ...sB('approved')},
+      {id:'2418', service:'Гарантирование по кредитам', org:'Даму', ...sB('attention')},
+      {id:'2420', service:'Проектное финансирование', org:'БРК', ...sB('review')},
+      {id:'2395', service:'Субсидирование ставки', org:'АКК', ...sB('rejected')}
+    ];
+    const cur = this.state.formStep;
+    const titles = ['','Тип заявителя','Данные компании','Параметры займа','Документы и подпись'];
+    const formSteps = [1,2,3,4].map((n,i) => {
+      const done = n < cur, active = n === cur;
+      return {
+        flex: n < 4 ? 1 : 'none', showLine: n < 4,
+        mark: done ? '✓' : String(n),
+        circleBg: done ? 'var(--color-primary)' : active ? '#fff' : 'var(--bg-muted)',
+        circleFg: done ? '#fff' : active ? 'var(--color-primary)' : 'var(--text-faint)',
+        circleBorder: (done || active) ? 'var(--color-primary)' : 'var(--border-strong)',
+        lineBg: n < cur ? 'var(--color-primary)' : 'var(--border-strong)'
+      };
+    });
+    return {
+      formSteps, stepTitle: titles[cur],
+      isStep1: cur===1, isStep2: cur===2, isStep3: cur===3, isStep4: cur===4,
+      nextLabel: cur===4 ? 'Отправить заявку' : 'Далее →',
+      megaCols: [
+        {h:'Финансирование', links:['Льготное кредитование','Проектное финансирование','Экономика простых вещей','Микрокредитование']},
+        {h:'Гарантии и субсидии', links:['Гарантирование кредитов','Субсидирование ставки','Портфельные гарантии']},
+        {h:'Экспорт и развитие', links:['Страхование экспорта','Экспортное финансирование','Лизинг оборудования','Гранты и акселерация']},
+        {h:'О холдинге', links:['О «Байтерек»','Дочерние организации','Новости','Контакты','База знаний']}
+      ],
+      serviceSections, serviceFacts, cabNav, cabStats, cabRows,
+      directions, orgAbbr, filterGroups, catalogCards,
+      fontLevel: this.state.fontLevel, demoFontSize: fontPx + 'px',
+      fontBtn0Bg: fb(0).bg, fontBtn0Fg: fb(0).fg, fontBtn1Bg: fb(1).bg, fontBtn1Fg: fb(1).fg, fontBtn2Bg: fb(2).bg, fontBtn2Fg: fb(2).fg,
+      serviceCards, orgCards,
+      setFont0: () => this.setState({fontLevel:0}), setFont1: () => this.setState({fontLevel:1}), setFont2: () => this.setState({fontLevel:2}),
+      megaOpen: this.state.megaOpen, toggleMega: () => this.setState(s=>({megaOpen:!s.megaOpen})),
+      consultantOpen: this.state.consultantOpen, toggleConsultant: () => this.setState(s=>({consultantOpen:!s.consultantOpen})),
+      formStep: this.state.formStep, formPct: (this.state.formStep/4*100)+'%',
+      nextStep: () => this.setState(s=>({formStep:Math.min(4,s.formStep+1)})),
+      prevStep: () => this.setState(s=>({formStep:Math.max(1,s.formStep-1)})),
+      greenScale, goldScale, neutralScale, semantic, typeScale, spaceScale, radiusScale, toc
+    };
+  }
+  _green(s){return {'50':'#EAF3EE','100':'#C9E2D5','200':'#A3CEB8','300':'#74B393','400':'#429A70','500':'#18794D','600':'#146843','700':'#135F3D','800':'#0D4A2F','900':'#08301F'}[s];}
+  _gold(s){return {'50':'#FBF8EF','100':'#F5EDD3','200':'#ECDFB0','300':'#E1CE89','400':'#D9C575','500':'#D3B961','600':'#C0A544','700':'#A08636','800':'#7C6829','900':'#5A4B1D'}[s];}
+}
+</script>
+</body>
+</html>
