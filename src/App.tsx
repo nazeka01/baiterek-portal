@@ -243,7 +243,7 @@ const SERVICES: Service[] = [
     titleKz: 'Экспорттық келісімшарттарды сақтандыру',
     org: 'ЭКА',
     stage: null,
-    cat: 'guarantee',
+    cat: 'insurance',
     dur: 'до 20 рабочих дней',
     result: 'Страховой полис от риска неплатежа иностранного покупателя',
     desc: 'Страхование экспортёров несырьевых товаров от риска неплатежа иностранного покупателя, страхование аккредитивов и займов',
@@ -273,7 +273,7 @@ const SERVICES: Service[] = [
     titleKz: 'Үлестік (венчурлік) қаржыландыру',
     org: 'QIC',
     stage: null,
-    cat: 'credit',
+    cat: 'invest',
     dur: 'до 90 рабочих дней',
     result: 'Вхождение в капитал проекта (до 49%) через фонды прямых инвестиций',
     desc: 'Долевое инвестирование в несырьевые секторы (здравоохранение, АПК, «зелёная» энергетика, IT) по модели «фонда фондов» — вхождение в капитал до 49% вместо кредитования',
@@ -598,6 +598,51 @@ const ORGANIZATIONS = [
   }
 ];
 
+// ---- SUPPORT DIRECTIONS (categories) META ----
+const CAT_META: Record<string, { badge: string; ru: string; kz: string; ruShort: string; kzShort: string; icon: string }> = {
+  credit:    { badge: 'badge-navy',  ru: 'Кредитование',   kz: 'Несиелеу',      ruShort: 'Кредиты',     kzShort: 'Несие',      icon: '🏦' },
+  subsidy:   { badge: 'badge-green', ru: 'Субсидирование', kz: 'Субсидиялау',   ruShort: 'Субсидии',    kzShort: 'Субсидия',   icon: '📉' },
+  leasing:   { badge: 'badge-gold',  ru: 'Лизинг',         kz: 'Лизинг',        ruShort: 'Лизинг',      kzShort: 'Лизинг',     icon: '🚆' },
+  guarantee: { badge: 'badge-amber', ru: 'Гарантирование', kz: 'Кепілдендіру',  ruShort: 'Гарантия',    kzShort: 'Кепілдік',   icon: '🛡️' },
+  insurance: { badge: 'badge-gray',  ru: 'Страхование',    kz: 'Сақтандыру',    ruShort: 'Страхование', kzShort: 'Сақтандыру', icon: '📑' },
+  invest:    { badge: 'badge-blue',  ru: 'Инвестирование', kz: 'Инвестициялау', ruShort: 'Инвестиции',  kzShort: 'Инвестиция', icon: '📈' },
+};
+const DIRECTION_ORDER = ['credit', 'subsidy', 'leasing', 'guarantee', 'insurance', 'invest'];
+const catBadge = (c: string) => CAT_META[c]?.badge || 'badge-gray';
+const catLabel = (c: string, lang: string, short = false) => {
+  const m = CAT_META[c];
+  if (!m) return c;
+  return lang === 'ru' ? (short ? m.ruShort : m.ru) : (short ? m.kzShort : m.kz);
+};
+const catCount = (c: string) => SERVICES.filter(s => s.cat === c).length;
+
+// ---- SERVICE STAT ROW (Сумма / Срок / Ставка) keyed by title ----
+const SERVICE_STATS: Record<string, { amount: string; term: string; rate: string; rateLabelRu?: string; rateLabelKz?: string }> = {
+  'Долгосрочное проектное кредитование': { amount: 'от 5 млрд ₸', term: 'до 20 лет', rate: 'индивид.' },
+  'Лизинг авиатранспорта и вагонов — I этап': { amount: 'от 80 млн ₸', term: 'до 10 лет', rate: 'от 12%' },
+  'Лизинг авиатранспорта и вагонов — II этап': { amount: 'от 80 млн ₸', term: 'до 10 лет', rate: 'от 12%' },
+  'Страхование экспортных контрактов': { amount: 'до 90%', term: 'по контракту', rate: 'от 0,8%', rateLabelRu: 'Тариф', rateLabelKz: 'Тариф' },
+  'Предэкспортное и торговое финансирование': { amount: 'по контракту', term: 'до 5 лет', rate: 'субсид.' },
+  'Долевое (венчурное) финансирование': { amount: 'до 49%', term: '5–7 лет', rate: 'equity', rateLabelRu: 'Форма', rateLabelKz: 'Нысаны' },
+  'Гарантирование кредитов «Даму Оптима»': { amount: 'до 85%', term: 'до 10 лет', rate: '1,5–2%' },
+  'Субсидирование ставки «Іскер аймақ»': { amount: 'по программе', term: 'до 5 лет', rate: 'субсидия' },
+  'Жилищный заём по системе ЖСС': { amount: 'по накоплению', term: 'до 20 лет', rate: '3,5–7%' },
+  'Гарантирование долевого строительства': { amount: 'по проекту', term: 'срок стройки', rate: 'гарантия', rateLabelRu: 'Форма', rateLabelKz: 'Нысаны' },
+  'Льготное кредитование АПК «Кең дала»': { amount: 'до 5 млрд ₸', term: 'до 8 лет', rate: 'от 5%' },
+  'Микрокредитование сельской молодёжи': { amount: 'до 8,5 млн ₸', term: 'до 7 лет', rate: '2,5%' },
+};
+
+// ---- BUSINESS SEGMENTS (persona navigation) ----
+const SEGMENTS: { key: string; ru: string; kz: string; icon: string; orgAbbr: string }[] = [
+  { key: 'msb',      ru: 'Малый и средний бизнес', kz: 'Шағын және орта бизнес', icon: '🏪', orgAbbr: 'Даму' },
+  { key: 'export',   ru: 'Экспортёры',             kz: 'Экспорттаушылар',        icon: '🌍', orgAbbr: 'ЭКА' },
+  { key: 'industry', ru: 'Промышленность',         kz: 'Өнеркәсіп',              icon: '🏭', orgAbbr: 'БРК' },
+  { key: 'agro',     ru: 'Аграрии',                kz: 'Аграрийлер',             icon: '🌾', orgAbbr: 'АКК' },
+  { key: 'builder',  ru: 'Застройщики',            kz: 'Құрылыс салушылар',      icon: '🏗️', orgAbbr: 'КЖК' },
+  { key: 'housing',  ru: 'Жильё для населения',    kz: 'Халыққа тұрғын үй',      icon: '🏠', orgAbbr: 'Отбасы' },
+  { key: 'invest',   ru: 'Инвестпроекты',          kz: 'Инвестжобалар',          icon: '💡', orgAbbr: 'QIC' },
+];
+
 // ---- HELPER ENGINE FUNCTIONS ----
 type FV = Record<string, unknown>;
 function isVis(f: SchemaField, fv: FV): boolean {
@@ -721,6 +766,7 @@ const App: React.FC = () => {
   const [stats, setStats] = useState({ applications: 0, users: 0, services: 5 });
   const [successId, setSuccessId] = useState('');
   const [activeOrg, setActiveOrg] = useState<typeof ORGANIZATIONS[0] | null>(null);
+  const [catalogCat, setCatalogCat] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Database Data States
@@ -1386,13 +1432,19 @@ const App: React.FC = () => {
 
   const a11yPanel = (
     <div className="a11y-controls-bar">
-      <span>{t('a11yTitle')}:</span>
-      <button className={`btn btn-xs ${largeFont ? 'btn-primary' : ''}`} onClick={() => setLargeFont(!largeFont)}>
-        {largeFont ? t('a11yTextNormal') : t('a11yTextLarge')}
-      </button>
-      <button className={`btn btn-xs ${highContrast ? 'btn-primary' : ''}`} onClick={() => setHighContrast(!highContrast)}>
-        {highContrast ? t('a11yContrastNormal') : t('a11yContrastHigh')}
-      </button>
+      <a className="topbar-call" href="tel:1414">
+        <span className="topbar-call-num">1414</span>
+        <span className="topbar-call-lbl">{lang === 'ru' ? 'Единый контакт-центр' : 'Бірыңғай байланыс орталығы'}</span>
+      </a>
+      <div className="topbar-a11y">
+        <span className="topbar-a11y-title">{t('a11yTitle')}:</span>
+        <button className={`btn btn-xs ${largeFont ? 'btn-primary' : ''}`} onClick={() => setLargeFont(!largeFont)}>
+          {largeFont ? t('a11yTextNormal') : t('a11yTextLarge')}
+        </button>
+        <button className={`btn btn-xs ${highContrast ? 'btn-primary' : ''}`} onClick={() => setHighContrast(!highContrast)}>
+          {highContrast ? t('a11yContrastNormal') : t('a11yContrastHigh')}
+        </button>
+      </div>
     </div>
   );
 
@@ -1648,7 +1700,7 @@ const App: React.FC = () => {
           articles={articles}
           lang={lang}
           onGoService={(i) => go('service', i)}
-          onGoCatalog={() => go('catalog')}
+          onGoCatalog={(c?: string) => { setCatalogCat(typeof c === 'string' ? c : 'all'); go('catalog'); }}
           onLogin={() => go('login')}
           onSelectOrg={(org) => {
             setActiveOrg(org);
@@ -1671,9 +1723,10 @@ const App: React.FC = () => {
   if (screen === 'catalog') {
     return (
       <CustomLayout nav={nav} hdrRight={hdrRight}>
-        <CatalogPage 
-          lang={lang} 
-          onSelectService={(i) => go('service', i)} 
+        <CatalogPage
+          lang={lang}
+          initialCat={catalogCat}
+          onSelectService={(i) => go('service', i)}
         />
       </CustomLayout>
     );
@@ -1881,7 +1934,7 @@ const HomePage: React.FC<{
   articles: any[];
   lang: string;
   onGoService: (i: number) => void;
-  onGoCatalog: () => void;
+  onGoCatalog: (cat?: string) => void;
   onLogin: () => void;
   onSelectOrg: (org: typeof ORGANIZATIONS[0]) => void;
   onSelectNews: (item: any) => void;
@@ -1971,7 +2024,7 @@ const HomePage: React.FC<{
             </div>
 
             <div className="hero-btns">
-              <button className="btn btn-gold btn-lg" onClick={onGoCatalog}>{lang === 'ru' ? 'Каталог услуг' : 'Қызметтер каталогы'}</button>
+              <button className="btn btn-gold btn-lg" onClick={() => onGoCatalog()}>{lang === 'ru' ? 'Каталог услуг' : 'Қызметтер каталогы'}</button>
               <button className="btn btn-outline btn-lg" onClick={onLogin}>{lang === 'ru' ? 'Личный кабинет' : 'Жеке кабинет'}</button>
             </div>
 
@@ -2001,10 +2054,59 @@ const HomePage: React.FC<{
         </div>
       </div>
 
-      {/* ---- ORGANIZATIONS ---- */}
+      {/* ---- SUPPORT DIRECTIONS ---- */}
       <div className="section">
         <div className="section-header">
-          <div className="section-title">{lang === 'ru' ? 'Организации Холдинга' : 'Холдинг ұйымдары'}</div>
+          <div>
+            <div className="section-title">{lang === 'ru' ? 'Направления поддержки' : 'Қолдау бағыттары'}</div>
+            <div className="section-sub">{lang === 'ru' ? 'Шесть форм государственной поддержки бизнеса в одном окне' : 'Бизнесті мемлекеттік қолдаудың алты нысаны бір терезеде'}</div>
+          </div>
+          <div className="section-link" onClick={() => onGoCatalog()}>{lang === 'ru' ? 'Все меры →' : 'Барлық шаралар →'}</div>
+        </div>
+        <div className="directions-grid">
+          {DIRECTION_ORDER.map(c => {
+            const m = CAT_META[c];
+            return (
+              <button key={c} className="direction-tile" onClick={() => onGoCatalog(c)}>
+                <span className="direction-icon">{m.icon}</span>
+                <span className="direction-name">{lang === 'ru' ? m.ru : m.kz}</span>
+                <span className="direction-count">{catCount(c)} {lang === 'ru' ? 'услуг' : 'қызмет'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ---- BUSINESS SEGMENTS ---- */}
+      <div className="section" style={{ paddingTop: 0 }}>
+        <div className="section-header">
+          <div>
+            <div className="section-title">{lang === 'ru' ? 'Подберите поддержку под ваш профиль' : 'Қолдауды бейініңізге қарай таңдаңыз'}</div>
+            <div className="section-sub">{lang === 'ru' ? 'Выберите, кто вы — и перейдите к профильной организации' : 'Кім екеніңізді таңдап, бейінді ұйымға өтіңіз'}</div>
+          </div>
+        </div>
+        <div className="segments-grid">
+          {SEGMENTS.map(seg => (
+            <button key={seg.key} className="segment-tile" onClick={() => {
+              const org = ORGANIZATIONS.find(o => o.abbr === seg.orgAbbr);
+              if (org) onSelectOrg(org);
+            }}>
+              <span className="segment-icon">{seg.icon}</span>
+              <span className="segment-label">{lang === 'ru' ? seg.ru : seg.kz}</span>
+              <span className="segment-arrow">→</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ---- ORGANIZATIONS ---- */}
+      <div className="section" style={{ paddingTop: 0 }}>
+        <div className="section-header">
+          <div>
+            <div className="section-title">{lang === 'ru' ? '7 дочерних организаций' : '7 еншілес ұйым'}</div>
+            <div className="section-sub">{lang === 'ru' ? 'Институты развития группы холдинга «Байтерек»' : '«Байтерек» холдингі тобының даму институттары'}</div>
+          </div>
+          <div className="section-link" onClick={onGoAbout}>{lang === 'ru' ? 'О холдинге →' : 'Холдинг туралы →'}</div>
         </div>
         <div className="orgs-grid">
           {ORGANIZATIONS.map(o => (
@@ -2021,23 +2123,36 @@ const HomePage: React.FC<{
       {/* ---- POPULAR SERVICES ---- */}
       <div className="section" style={{ paddingTop: 0 }}>
         <div className="section-header">
-          <div className="section-title">{lang === 'ru' ? 'Популярные услуги' : 'Танымал қызметтер'}</div>
-          <div className="section-link" onClick={onGoCatalog}>{lang === 'ru' ? 'Все услуги →' : 'Барлық қызметтер →'}</div>
+          <div>
+            <div className="section-title">{lang === 'ru' ? 'Популярные услуги' : 'Танымал қызметтер'}</div>
+            <div className="section-sub">{lang === 'ru' ? 'Востребованные меры поддержки от институтов развития' : 'Даму институттарының сұранысқа ие қолдау шаралары'}</div>
+          </div>
+          <div className="section-link" onClick={() => onGoCatalog()}>{lang === 'ru' ? 'Все услуги →' : 'Барлық қызметтер →'}</div>
         </div>
         <div className="services-grid">
-          {SERVICES.slice(0, 4).map((s, i) => (
-            <div className="service-card" key={i} onClick={() => onGoService(i)}>
-              <div className="service-org">{s.org}{s.stage ? ` · Этап ${s.stage}` : ''}</div>
-              <div className="service-title">{lang === 'ru' ? s.title : s.titleKz || s.title}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                <span className={`badge badge-${{ leasing:'navy', subsidy:'green', credit:'amber', guarantee:'gray' }[s.cat] || 'gray'}`}>
-                  {s.cat === 'leasing' ? (lang === 'ru' ? 'Лизинг' : 'Лизинг') : s.cat === 'subsidy' ? (lang === 'ru' ? 'Субсидии' : 'Субсидия') : s.cat === 'credit' ? (lang === 'ru' ? 'Кредиты' : 'Несие') : (lang === 'ru' ? 'Гарантия' : 'Кепілдік')}
-                </span>
-                <span className="service-dur">{s.dur}</span>
+          {SERVICES.slice(0, 4).map((s, i) => {
+            const stats = SERVICE_STATS[s.title];
+            return (
+              <div className="svc-card" key={i} onClick={() => onGoService(i)}>
+                <div className="svc-card-head">
+                  <span className="svc-card-org">{s.org}</span>
+                  <span className={`badge ${catBadge(s.cat)}`}>{catLabel(s.cat, lang, true)}</span>
+                </div>
+                <div className="svc-card-title">{lang === 'ru' ? s.title : s.titleKz || s.title}</div>
+                {stats && (
+                  <div className="svc-stats">
+                    <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? 'Сумма' : 'Сомасы'}</div><div className="svc-stat-v">{stats.amount}</div></div>
+                    <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? 'Срок' : 'Мерзімі'}</div><div className="svc-stat-v">{stats.term}</div></div>
+                    <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? (stats.rateLabelRu || 'Ставка') : (stats.rateLabelKz || 'Мөлшерлеме')}</div><div className="svc-stat-v">{stats.rate}</div></div>
+                  </div>
+                )}
+                <div className="svc-card-foot">
+                  <span className="svc-card-dur">⏱ {s.dur}</span>
+                  <span className="btn btn-primary btn-sm">{lang === 'ru' ? 'Подать заявку' : 'Өтінім беру'}</span>
+                </div>
               </div>
-              <div className="service-arrow">{lang === 'ru' ? 'Подать заявку →' : 'Өтінім беру →'}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -2069,7 +2184,7 @@ const HomePage: React.FC<{
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 12 }}>
           {[
-            { icon: '📋', label: lang === 'ru' ? 'Подать заявку' : 'Өтінім беру', action: onGoCatalog },
+            { icon: '📋', label: lang === 'ru' ? 'Подать заявку' : 'Өтінім беру', action: () => onGoCatalog() },
             { icon: '🧮', label: lang === 'ru' ? 'Смета расходов' : 'Шығын сметасы', action: onLogin },
             { icon: '📚', label: lang === 'ru' ? 'База знаний' : 'Білім базасы', action: onGoKnowledge },
             { icon: '📞', label: lang === 'ru' ? 'Горячая линия 1414' : 'Қоңырау орталығы 1414', action: () => { window.location.href = 'tel:1414'; } },
@@ -2116,9 +2231,9 @@ const HomePage: React.FC<{
               { label: 'АКК', action: () => onSelectOrg(ORGANIZATIONS[6]) },
             ]},
             { title: lang === 'ru' ? 'Услуги' : 'Қызметтер', links: [
-              { label: lang === 'ru' ? 'Каталог услуг' : 'Қызметтер каталогы', action: onGoCatalog },
+              { label: lang === 'ru' ? 'Каталог услуг' : 'Қызметтер каталогы', action: () => onGoCatalog() },
               { label: lang === 'ru' ? 'База знаний' : 'Білім базасы', action: onGoKnowledge },
-              { label: lang === 'ru' ? 'Карта услуг' : 'Қызметтер картасы', action: onGoCatalog },
+              { label: lang === 'ru' ? 'Карта услуг' : 'Қызметтер картасы', action: () => onGoCatalog() },
               { label: 'FAQ', action: onGoKnowledge },
             ]},
             { title: lang === 'ru' ? 'Контакты' : 'Байланыс', links: [
@@ -2739,16 +2854,25 @@ const KnowledgePage: React.FC<{
 // ---- CATALOG PAGE ----
 const CatalogPage: React.FC<{
   lang: string;
+  initialCat?: string;
   onSelectService: (i: number) => void;
-}> = ({ lang, onSelectService }) => {
+}> = ({ lang, initialCat = 'all', onSelectService }) => {
   const [search, setSearch] = useState('');
-  const [cat, setCat] = useState('all');
+  const [cat, setCat] = useState(initialCat);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [orgSel, setOrgSel] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 6;
 
+  const toggleOrg = (abbr: string) => {
+    setOrgSel(prev => prev.includes(abbr) ? prev.filter(a => a !== abbr) : [...prev, abbr]);
+    setPage(1);
+  };
+  const resetFilters = () => { setCat('all'); setOrgSel([]); setSearch(''); setPage(1); };
+
   const filtered = SERVICES.filter(s =>
     (cat === 'all' || s.cat === cat) &&
+    (orgSel.length === 0 || orgSel.includes(s.org)) &&
     (s.title.toLowerCase().includes(search.toLowerCase()) || s.org.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -2767,11 +2891,13 @@ const CatalogPage: React.FC<{
   const handleSearch = (q: string) => { setSearch(q); setPage(1); };
 
   const cats = [
-    { v: 'all', l: 'Все', lKz: 'Барлығы' }, 
-    { v: 'leasing', l: 'Лизинг', lKz: 'Лизинг' }, 
-    { v: 'credit', l: 'Кредиты', lKz: 'Несиелер' }, 
-    { v: 'subsidy', l: 'Субсидии', lKz: 'Субсидиялар' }, 
-    { v: 'guarantee', l: 'Гарантии', lKz: 'Кепілдіктер' }
+    { v: 'all', l: 'Все', lKz: 'Барлығы' },
+    { v: 'credit', l: 'Кредитование', lKz: 'Несиелеу' },
+    { v: 'subsidy', l: 'Субсидирование', lKz: 'Субсидиялау' },
+    { v: 'leasing', l: 'Лизинг', lKz: 'Лизинг' },
+    { v: 'guarantee', l: 'Гарантирование', lKz: 'Кепілдендіру' },
+    { v: 'insurance', l: 'Страхование', lKz: 'Сақтандыру' },
+    { v: 'invest', l: 'Инвестирование', lKz: 'Инвестициялау' }
   ];
 
   return (
@@ -2806,22 +2932,74 @@ const CatalogPage: React.FC<{
         </div>
       </div>
 
-      <div className="catalog-grid">
+      <div className="catalog-body">
+        <aside className="catalog-filters">
+          <div className="filter-panel-head">
+            <span className="filter-panel-title">{lang === 'ru' ? 'Фильтры' : 'Сүзгілер'}</span>
+            {(orgSel.length > 0 || cat !== 'all' || search) && (
+              <button className="filter-reset" onClick={resetFilters}>{lang === 'ru' ? 'Сбросить' : 'Тазарту'}</button>
+            )}
+          </div>
+          <div className="filter-group">
+            <div className="filter-group-title">{lang === 'ru' ? 'Форма поддержки' : 'Қолдау нысаны'}</div>
+            {DIRECTION_ORDER.map(c => {
+              const cnt = catCount(c);
+              if (!cnt) return null;
+              return (
+                <label key={c} className="filter-check">
+                  <input type="radio" name="catf" checked={cat === c} onChange={() => handleFilter(c)} />
+                  <span className="filter-check-label">{catLabel(c, lang)}</span>
+                  <span className="filter-check-count">{cnt}</span>
+                </label>
+              );
+            })}
+            <label className="filter-check">
+              <input type="radio" name="catf" checked={cat === 'all'} onChange={() => handleFilter('all')} />
+              <span className="filter-check-label">{lang === 'ru' ? 'Все формы' : 'Барлық нысан'}</span>
+              <span className="filter-check-count">{SERVICES.length}</span>
+            </label>
+          </div>
+          <div className="filter-group">
+            <div className="filter-group-title">{lang === 'ru' ? 'Организация' : 'Ұйым'}</div>
+            {ORGANIZATIONS.map(o => {
+              const cnt = SERVICES.filter(s => s.org === o.abbr).length;
+              if (!cnt) return null;
+              return (
+                <label key={o.abbr} className="filter-check">
+                  <input type="checkbox" checked={orgSel.includes(o.abbr)} onChange={() => toggleOrg(o.abbr)} />
+                  <span className="filter-check-label">{o.abbr}</span>
+                  <span className="filter-check-count">{cnt}</span>
+                </label>
+              );
+            })}
+          </div>
+        </aside>
+
+        <div className="catalog-results">
+          <div className="results-count">{lang === 'ru' ? `Найдено ${sorted.length} услуг` : `${sorted.length} қызмет табылды`}</div>
+          <div className="catalog-grid">
         {paginated.map((s) => {
           const realIdx = SERVICES.indexOf(s);
-          const catColors: Record<string, string> = { leasing: 'badge-navy', subsidy: 'badge-green', credit: 'badge-amber', guarantee: 'badge-gray' };
-          const catLabels: Record<string, string> = { leasing: 'Лизинг', subsidy: 'Субсидии', credit: 'Кредиты', guarantee: 'Гарантии' };
-          const catLabelsKz: Record<string, string> = { leasing: 'Лизинг', subsidy: 'Субсидиялар', credit: 'Несиелер', guarantee: 'Кепілдіктер' };
-
+          const stats = SERVICE_STATS[s.title];
           return (
-            <div className="cat-card" key={s.title} onClick={() => onSelectService(realIdx)}>
-              <div className="cat-card-top">
-                <span className={`badge ${catColors[s.cat] || 'badge-gray'}`}>{lang === 'ru' ? catLabels[s.cat] : catLabelsKz[s.cat] || s.cat}</span>
-                {s.stage && <span className="badge badge-gray">{lang === 'ru' ? `Этап ${s.stage}` : `${s.stage}-Кезең`}</span>}
+            <div className="svc-card" key={s.title} onClick={() => onSelectService(realIdx)}>
+              <div className="svc-card-head">
+                <span className="svc-card-org">{s.org}</span>
+                <span className={`badge ${catBadge(s.cat)}`}>{catLabel(s.cat, lang)}</span>
               </div>
-              <div className="cat-card-title">{lang === 'ru' ? s.title : s.titleKz || s.title}</div>
-              <div className="cat-card-desc">{s.org} · {lang === 'ru' ? s.desc.slice(0, 80) : s.descKz?.slice(0, 80)}...</div>
-              <div className="cat-card-footer"><span>{s.dur}</span><span className="cat-card-cta">{lang === 'ru' ? 'Подробнее →' : 'Толығырақ →'}</span></div>
+              <div className="svc-card-title">{lang === 'ru' ? s.title : s.titleKz || s.title}</div>
+              <div className="svc-card-desc">{lang === 'ru' ? s.desc.slice(0, 96) : (s.descKz || s.desc).slice(0, 96)}…</div>
+              {stats && (
+                <div className="svc-stats">
+                  <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? 'Сумма' : 'Сомасы'}</div><div className="svc-stat-v">{stats.amount}</div></div>
+                  <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? 'Срок' : 'Мерзімі'}</div><div className="svc-stat-v">{stats.term}</div></div>
+                  <div className="svc-stat"><div className="svc-stat-l">{lang === 'ru' ? (stats.rateLabelRu || 'Ставка') : (stats.rateLabelKz || 'Мөлшерлеме')}</div><div className="svc-stat-v">{stats.rate}</div></div>
+                </div>
+              )}
+              <div className="svc-card-foot">
+                <span className="svc-card-dur">⏱ {s.dur}</span>
+                <span className="btn btn-primary btn-sm">{lang === 'ru' ? 'Подробнее' : 'Толығырақ'}</span>
+              </div>
             </div>
           );
         })}
@@ -2866,6 +3044,8 @@ const CatalogPage: React.FC<{
           </span>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -4681,7 +4861,7 @@ const AdminServices: React.FC = () => (
             <tr key={i}>
               <td style={{ fontWeight: 500 }}>{s.title}</td>
               <td>{s.org}</td>
-              <td><span className="badge badge-blue">{{ leasing: 'Лизинг', subsidy: 'Субсидии', credit: 'Кредиты', guarantee: 'Гарантии' }[s.cat] || s.cat}</span></td>
+              <td><span className={`badge ${catBadge(s.cat)}`}>{catLabel(s.cat, 'ru')}</span></td>
               <td><span className="badge badge-green">Активна</span></td>
             </tr>
           ))}
