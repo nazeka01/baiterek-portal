@@ -866,6 +866,97 @@ const saveLocalApp = (id: string, serviceId: number, user: User | null, formData
   }
 };
 
+// ---- APP SHELL (stable module-level layout; state passed via ctx to avoid remounting children) ----
+const AppShell: React.FC<{ ctx: any; children: React.ReactNode; nav?: React.ReactNode; hdrRight?: React.ReactNode; onBack?: () => void }> = ({ ctx, children, nav, hdrRight, onBack }) => {
+  const { a11yPanel, t, go, setMobileMenuOpen, langSwitcher, user, notificationBellCount, notifBadgeLabel, mobileMenuOpen, lang, screen, onLogout, breadcrumbs } = ctx;
+  return (
+    <div className="app-layout">
+      {a11yPanel}
+      <header className="app-header">
+        <div className="header-left">
+          {onBack && <button className="btn btn-sm btn-back-custom" onClick={onBack}>← {t('backBtn')}</button>}
+          <div className="logo" onClick={() => { go('home'); setMobileMenuOpen(false); }}>
+            <div className="logo-mark">Б</div>
+            <div>
+              <div className="logo-name">BAITEREK</div>
+              <div className="logo-sub">{t('logoSub')}</div>
+            </div>
+          </div>
+          {nav}
+        </div>
+        <div className="header-right">
+          <div className="hdr-right-mobile">
+            {langSwitcher}
+            {user && notificationBellCount > 0 && (
+              <button className="notif-bell-btn" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
+                🔔 <span className="notif-badge">{notifBadgeLabel}</span>
+              </button>
+            )}
+            <button
+              className="hamburger-btn"
+              onClick={() => setMobileMenuOpen((o: boolean) => !o)}
+              aria-label="Меню"
+            >
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
+            </button>
+          </div>
+          <div className="hdr-right-desktop">
+            {hdrRight}
+          </div>
+        </div>
+      </header>
+
+      {mobileMenuOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-nav-drawer" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <span style={{ fontWeight: 700, color: 'var(--bt-navy-900)' }}>Меню</span>
+              <button className="btn btn-xs btn-ghost" onClick={() => setMobileMenuOpen(false)}>✕</button>
+            </div>
+            {(['home','catalog','about','news','knowledge','contacts','vacancies'] as Screen[]).map(s => {
+              const labels: Record<string,string> = {
+                home: t('navHome'), catalog: t('navCatalog'),
+                about: lang === 'ru' ? 'О Холдинге' : 'Холдинг туралы',
+                news: t('navNews'), knowledge: t('navFAQ'),
+                contacts: t('navContacts'), vacancies: t('navVacancies')
+              };
+              return (
+                <button key={s} className={`mobile-nav-item ${screen === s ? 'active' : ''}`}
+                  onClick={() => { go(s); setMobileMenuOpen(false); }}>
+                  {labels[s]}
+                </button>
+              );
+            })}
+            <div className="mobile-nav-divider" />
+            {user ? (
+              <>
+                <button className="mobile-nav-item" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
+                  👤 {lang === 'ru' ? 'Личный кабинет' : 'Жеке кабинет'}
+                </button>
+                <button className="mobile-nav-item" style={{ color: 'var(--danger)' }} onClick={() => { onLogout(); setMobileMenuOpen(false); }}>
+                  {t('logout')}
+                </button>
+              </>
+            ) : (
+              <button className="mobile-nav-item mobile-nav-cta" onClick={() => { go('login'); setMobileMenuOpen(false); }}>
+                {t('login')} →
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="app-main-content">
+        {breadcrumbs}
+        {children}
+      </div>
+      <AIAssistant lang={lang} />
+    </div>
+  );
+};
+
 // ---- MAIN APP ----
 const App: React.FC = () => {
   const isAdminRoute = window.location.pathname.startsWith('/admin');
@@ -1682,95 +1773,11 @@ const App: React.FC = () => {
   );
 
   // Layout with Breadcrumbs and accessibility panel
-  const CustomLayout: React.FC<{ children: React.ReactNode; nav?: React.ReactNode; hdrRight?: React.ReactNode; onBack?: () => void }> = ({ children, nav, hdrRight, onBack }) => (
-    <div className="app-layout">
-      {a11yPanel}
-      <header className="app-header">
-        <div className="header-left">
-          {onBack && <button className="btn btn-sm btn-back-custom" onClick={onBack}>← {t('backBtn')}</button>}
-          <div className="logo" onClick={() => { go('home'); setMobileMenuOpen(false); }}>
-            <div className="logo-mark">Б</div>
-            <div>
-              <div className="logo-name">BAITEREK</div>
-              <div className="logo-sub">{t('logoSub')}</div>
-            </div>
-          </div>
-          {nav}
-        </div>
-        <div className="header-right">
-          {/* Mobile: show compact controls */}
-          <div className="hdr-right-mobile">
-            {langSwitcher}
-            {user && notificationBellCount > 0 && (
-              <button className="notif-bell-btn" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
-                🔔 <span className="notif-badge">{notifBadgeLabel}</span>
-              </button>
-            )}
-            <button
-              className="hamburger-btn"
-              onClick={() => setMobileMenuOpen(o => !o)}
-              aria-label="Меню"
-            >
-              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
-              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
-              <span className={`ham-line ${mobileMenuOpen ? 'open' : ''}`} />
-            </button>
-          </div>
-          {/* Desktop: full controls */}
-          <div className="hdr-right-desktop">
-            {hdrRight}
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile nav drawer */}
-      {mobileMenuOpen && (
-        <div className="mobile-nav-overlay" onClick={() => setMobileMenuOpen(false)}>
-          <div className="mobile-nav-drawer" onClick={e => e.stopPropagation()}>
-            <div className="mobile-nav-header">
-              <span style={{ fontWeight: 700, color: 'var(--bt-navy-900)' }}>Меню</span>
-              <button className="btn btn-xs btn-ghost" onClick={() => setMobileMenuOpen(false)}>✕</button>
-            </div>
-            {(['home','catalog','about','news','knowledge','contacts','vacancies'] as Screen[]).map(s => {
-              const labels: Record<string,string> = {
-                home: t('navHome'), catalog: t('navCatalog'),
-                about: lang === 'ru' ? 'О Холдинге' : 'Холдинг туралы',
-                news: t('navNews'), knowledge: t('navFAQ'),
-                contacts: t('navContacts'), vacancies: t('navVacancies')
-              };
-              return (
-                <button key={s} className={`mobile-nav-item ${screen === s ? 'active' : ''}`}
-                  onClick={() => { go(s); setMobileMenuOpen(false); }}>
-                  {labels[s]}
-                </button>
-              );
-            })}
-            <div className="mobile-nav-divider" />
-            {user ? (
-              <>
-                <button className="mobile-nav-item" onClick={() => { go('dash'); setMobileMenuOpen(false); }}>
-                  👤 {lang === 'ru' ? 'Личный кабинет' : 'Жеке кабинет'}
-                </button>
-                <button className="mobile-nav-item" style={{ color: 'var(--danger)' }} onClick={() => { onLogout(); setMobileMenuOpen(false); }}>
-                  {t('logout')}
-                </button>
-              </>
-            ) : (
-              <button className="mobile-nav-item mobile-nav-cta" onClick={() => { go('login'); setMobileMenuOpen(false); }}>
-                {t('login')} →
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="app-main-content">
-        {breadcrumbs}
-        {children}
-      </div>
-      <AIAssistant lang={lang} />
-    </div>
-  );
+  const layoutCtx = {
+    a11yPanel, t, go, setMobileMenuOpen, langSwitcher, user,
+    notificationBellCount, notifBadgeLabel, mobileMenuOpen, lang, screen,
+    onLogout, breadcrumbs,
+  };
 
   // ---- ADMIN ROUTE: полностью изолирован от пользовательской части ----
   if (isAdminRoute) {
@@ -1816,7 +1823,7 @@ const App: React.FC = () => {
   // ---- USER SCREEN ROUTERS ----
   if (screen === 'home') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <HomePage
           stats={stats}
           news={news}
@@ -1839,25 +1846,25 @@ const App: React.FC = () => {
           onGoContacts={() => go('contacts')}
           onGoNews={() => go('news')}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'catalog') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <CatalogPage
           lang={lang}
           initialCat={catalogCat}
           onSelectService={(i) => go('service', i)}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'org_details' && activeOrg) {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight} onBack={() => go('home')}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight} onBack={() => go('home')}>
         <OrgDetailsPage
           org={activeOrg}
           lang={lang}
@@ -1870,46 +1877,46 @@ const App: React.FC = () => {
             else go('login');
           }}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'news') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <NewsListPage
           news={news}
           lang={lang}
           onSelectNews={(n) => { setActiveNews(n); go('news_details'); }}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'news_details' && activeNews) {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight} onBack={() => go('news')}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight} onBack={() => go('news')}>
         <NewsDetailsPage newsItem={activeNews} lang={lang} />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'knowledge') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <KnowledgePage 
           articles={articles} 
           lang={lang} 
           onSelectArticle={(a) => setActiveArticle(a)}
           activeArticle={activeArticle}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'contacts') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <ContactsPage 
           name={fbName} setName={setFbName}
           email={fbEmail} setEmail={setFbEmail}
@@ -1918,33 +1925,33 @@ const App: React.FC = () => {
           success={fbSuccess} setSuccess={setFbSuccess}
           onSubmit={sendFeedback}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'vacancies') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <VacanciesPage
           redirectCount={vacancyRedirectCount}
           onApply={handleVacancyClick}
           lang={lang}
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'about') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight}>
         <AboutPage lang={lang} onSelectOrg={(org) => { setActiveOrg(org); go('org_details'); }} />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'service') {
     return (
-      <CustomLayout nav={nav} hdrRight={hdrRight} onBack={() => go('catalog')}>
+      <AppShell ctx={layoutCtx} nav={nav} hdrRight={hdrRight} onBack={() => go('catalog')}>
         <ServicePage 
           svc={SERVICES[svcIdx]} 
           lang={lang} 
@@ -1953,7 +1960,7 @@ const App: React.FC = () => {
             else go('login');
           }} 
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
@@ -1976,17 +1983,17 @@ const App: React.FC = () => {
 
   if (screen === 'success') {
     return (
-      <CustomLayout hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} hdrRight={hdrRight}>
         <SuccessPage appId={successId} svc={SERVICES[svcIdx]} onDash={() => go('dash')} />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
   if (screen === 'login') {
     return (
-      <CustomLayout hdrRight={hdrRight} onBack={() => go('home')}>
+      <AppShell ctx={layoutCtx} hdrRight={hdrRight} onBack={() => go('home')}>
         <LoginPage onLogin={onLogin} onAdminLogin={() => go('adminlogin')} />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
@@ -1998,7 +2005,7 @@ const App: React.FC = () => {
 
   if (screen === 'dash' && user) {
     return (
-      <CustomLayout hdrRight={hdrRight}>
+      <AppShell ctx={layoutCtx} hdrRight={hdrRight}>
         <DashPage 
           user={user} 
           apps={apps} 
@@ -2039,7 +2046,7 @@ const App: React.FC = () => {
           onGoCatalog={() => go('catalog')} 
           onLogout={onLogout} 
         />
-      </CustomLayout>
+      </AppShell>
     );
   }
 
