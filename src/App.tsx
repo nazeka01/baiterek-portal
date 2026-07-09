@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 
+// ---- API BASE ----
+// Backend base URL. In production set REACT_APP_API_BASE in the deploy env
+// (e.g. https://baiterek-api.up.railway.app). Falls back to local dev server.
+const API_BASE = (process.env.REACT_APP_API_BASE || 'http://localhost:3001').replace(/\/$/, '');
+
 // ---- AUTH HELPER ----
 const getAuthHeaders = (tok?: string | null): Record<string, string> =>
   tok ? { 'Authorization': `Bearer ${tok}` } : {};
@@ -975,7 +980,7 @@ const App: React.FC = () => {
   // Load database items
   const fetchNews = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/news');
+      const res = await fetch(API_BASE + '/api/news');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length) setNews(data);
@@ -987,7 +992,7 @@ const App: React.FC = () => {
 
   const fetchArticles = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/articles');
+      const res = await fetch(API_BASE + '/api/articles');
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length) setArticles(data);
@@ -1010,7 +1015,7 @@ const App: React.FC = () => {
     if (!user?.id) return;
     const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch(`http://localhost:3001/api/notifications?userId=${user.id}`, { headers: authHeader });
+      const res = await fetch(`${API_BASE}/api/notifications?userId=${user.id}`, { headers: authHeader });
       if (res.ok) {
         const data = await res.json();
         const unread = data.filter((n: any) => !n.IsRead).length;
@@ -1032,7 +1037,7 @@ const App: React.FC = () => {
     if (!user?.id) return;
     const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch(`http://localhost:3001/api/bookings?userId=${user.id}`, { headers: authHeader });
+      const res = await fetch(`${API_BASE}/api/bookings?userId=${user.id}`, { headers: authHeader });
       if (res.ok) setBookings(await res.json());
     } catch (e) {
       console.log('Error loading bookings:', e);
@@ -1042,7 +1047,7 @@ const App: React.FC = () => {
   const fetchAuditLogs = async () => {
     const authHeader = getAuthHeaders(localStorage.getItem('baiterek_token'));
     try {
-      const res = await fetch('http://localhost:3001/api/logs', { headers: authHeader });
+      const res = await fetch(API_BASE + '/api/logs', { headers: authHeader });
       if (res.ok) setAuditLogs(await res.json());
     } catch (e) {
       console.log('Error loading audit logs:', e);
@@ -1055,7 +1060,7 @@ const App: React.FC = () => {
     let fetchSuccess = false;
 
     try {
-      const appsRes = await fetch('http://localhost:3001/api/applications', { headers: authHeader });
+      const appsRes = await fetch(API_BASE + '/api/applications', { headers: authHeader });
       if (appsRes.ok) {
         const appsData = await appsRes.json();
         serverApps = appsData.map((a: any) => ({
@@ -1080,7 +1085,7 @@ const App: React.FC = () => {
       console.log(`🔄 Обнаружено ${localApps.length} локальных заявок для синхронизации...`);
       for (const localApp of localApps) {
         try {
-          const syncRes = await fetch('http://localhost:3001/api/applications', {
+          const syncRes = await fetch(API_BASE + '/api/applications', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1103,7 +1108,7 @@ const App: React.FC = () => {
       
       // Re-fetch server applications now that they are synchronized!
       try {
-        const appsRes = await fetch('http://localhost:3001/api/applications', { headers: authHeader });
+        const appsRes = await fetch(API_BASE + '/api/applications', { headers: authHeader });
         if (appsRes.ok) {
           const appsData = await appsRes.json();
           serverApps = appsData.map((a: any) => ({
@@ -1134,7 +1139,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const statsRes = await fetch('http://localhost:3001/api/stats', { headers: authHeader });
+      const statsRes = await fetch(API_BASE + '/api/stats', { headers: authHeader });
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
@@ -1261,7 +1266,7 @@ const App: React.FC = () => {
     e.preventDefault();
     if (!user?.id) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/users/${user.id}`, {
+      const res = await fetch(`${API_BASE}/api/users/${user.id}`, {
         method: 'PATCH',
         headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
@@ -1302,7 +1307,7 @@ const App: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch('http://localhost:3001/api/bookings', {
+      const res = await fetch(API_BASE + '/api/bookings', {
         method: 'POST',
         headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
@@ -1331,10 +1336,10 @@ const App: React.FC = () => {
   const loadAppDetails = useCallback(async (appId: string) => {
     const authH = getAuthHeaders(token);
     try {
-      const commentsRes = await fetch(`http://localhost:3001/api/applications/${appId}/comments`, { headers: authH });
+      const commentsRes = await fetch(`${API_BASE}/api/applications/${appId}/comments`, { headers: authH });
       if (commentsRes.ok) setAppComments(await commentsRes.json());
 
-      const docsRes = await fetch(`http://localhost:3001/api/applications/${appId}/documents`, { headers: authH });
+      const docsRes = await fetch(`${API_BASE}/api/applications/${appId}/documents`, { headers: authH });
       if (docsRes.ok) setAppDocs(await docsRes.json());
     } catch(e) {
       console.log('Error loading comments/docs details:', e);
@@ -1351,7 +1356,7 @@ const App: React.FC = () => {
   const sendComment = async () => {
     if (!newCommentText.trim() || !activeApp) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/applications/${activeApp.id}/comments`, {
+      const res = await fetch(`${API_BASE}/api/applications/${activeApp.id}/comments`, {
         method: 'POST',
         headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
@@ -1380,7 +1385,7 @@ const App: React.FC = () => {
       if (!file) return;
       
       try {
-        const res = await fetch(`http://localhost:3001/api/applications/${activeApp.id}/documents`, {
+        const res = await fetch(`${API_BASE}/api/applications/${activeApp.id}/documents`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1426,7 +1431,7 @@ const App: React.FC = () => {
       // Добавляем запись в комментарии и логи, а также отправляем уведомление об успешной подписи ЭЦП
       const msg = `Документ [${signDocField === 'application' ? 'Форма заявления' : signDocField}] успешно подписан ЭЦП владельца: ${user?.name || 'Сериков А.Б.'} (${signKeyFile}).`;
       
-      await fetch(`http://localhost:3001/api/applications/${activeApp.id}/comments`, {
+      await fetch(`${API_BASE}/api/applications/${activeApp.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1454,7 +1459,7 @@ const App: React.FC = () => {
       return;
     }
     try {
-      await fetch('http://localhost:3001/api/feedback', {
+      await fetch(API_BASE + '/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1478,7 +1483,7 @@ const App: React.FC = () => {
   // Mark single notification read
   const markNotifRead = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/notifications/${id}`, {
+      const res = await fetch(`${API_BASE}/api/notifications/${id}`, {
         method: 'PATCH'
       });
       if (res.ok) {
@@ -1493,7 +1498,7 @@ const App: React.FC = () => {
   const clearAllNotifs = async () => {
     if (!user?.id) return;
     try {
-      const res = await fetch('http://localhost:3001/api/notifications/clear-all', {
+      const res = await fetch(API_BASE + '/api/notifications/clear-all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id })
@@ -3451,7 +3456,7 @@ const AppFlow: React.FC<{
       setLoading(true);
       const id = 'BRK-' + Date.now().toString().slice(-8);
       try {
-        const res = await fetch('http://localhost:3001/api/applications', {
+        const res = await fetch(API_BASE + '/api/applications', {
           method: 'POST',
           headers: getJsonAuthHeaders(localStorage.getItem('baiterek_token')),
           body: JSON.stringify({
@@ -3668,7 +3673,7 @@ const LoginPage: React.FC<{ onLogin: (u: User, token?: string) => void; onAdminL
     const company = iin === '123456789012' ? 'ТОО "АвиаТранс Казахстан"' : 'ИП Сериков А.Б.';
 
     try {
-      const res = await fetch('http://localhost:3001/api/users/login', {
+      const res = await fetch(API_BASE + '/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ iin, fullName: demoName, email: `${iin}@egov.kz`, phone: '+7 (701) 999-99-99', companyName: company, position: 'Директор' })
@@ -3786,7 +3791,7 @@ const AdminLoginPage: React.FC<{ onLogin: (token?: string) => void }> = ({ onLog
     setLoading(true);
     setErr('');
     try {
-      const res = await fetch('http://localhost:3001/api/admin/login', {
+      const res = await fetch(API_BASE + '/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login, password: pass })
@@ -5176,7 +5181,7 @@ const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; token:
 
     try {
       const authH = getAuthHeaders(token);
-      const res = await fetch(`http://localhost:3001/api/applications/${selectedApp.id}/status`, {
+      const res = await fetch(`${API_BASE}/api/applications/${selectedApp.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authH },
         body: JSON.stringify({
@@ -5187,7 +5192,7 @@ const AdminApplications: React.FC<{ apps: AppRecord[]; user: User | null; token:
 
       if (res.ok) {
         if (commentVal.trim() !== '') {
-          await fetch(`http://localhost:3001/api/applications/${selectedApp.id}/comments`, {
+          await fetch(`${API_BASE}/api/applications/${selectedApp.id}/comments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authH },
             body: JSON.stringify({
@@ -5291,7 +5296,7 @@ const AdminUsers: React.FC<{ user: User | null; token: string }> = ({ user, toke
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/users', {
+        const res = await fetch(API_BASE + '/api/users', {
           headers: getAuthHeaders(token)
         });
         if (res.ok) setUsers(await res.json());
@@ -5348,7 +5353,7 @@ const AdminContentManager: React.FC<{ articles: any[]; user: User | null; token:
   const submitArticle = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/articles', {
+      const res = await fetch(API_BASE + '/api/articles', {
         method: 'POST',
         headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
@@ -5369,7 +5374,7 @@ const AdminContentManager: React.FC<{ articles: any[]; user: User | null; token:
   const deleteArticle = async (id: number) => {
     if (!window.confirm('Удалить эту статью?')) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/articles/${id}`, {
+      const res = await fetch(`${API_BASE}/api/articles/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
       });
@@ -5444,7 +5449,7 @@ const AdminNewsManager: React.FC<{ news: any[]; user: User | null; token: string
   const submitNews = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/news', {
+      const res = await fetch(API_BASE + '/api/news', {
         method: 'POST',
         headers: getJsonAuthHeaders(token),
         body: JSON.stringify({
@@ -5465,7 +5470,7 @@ const AdminNewsManager: React.FC<{ news: any[]; user: User | null; token: string
   const deleteNews = async (id: number) => {
     if (!window.confirm('Удалить эту новость?')) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/news/${id}`, {
+      const res = await fetch(`${API_BASE}/api/news/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(token)
       });

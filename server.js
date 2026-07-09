@@ -754,9 +754,9 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Сервер запущен: http://localhost:${PORT}`);
+  console.log(`🚀 Сервер запущен на порту ${PORT}`);
   console.log(`🔐 JWT авторизация активна`);
   console.log(`📁 Загрузка файлов: /uploads/`);
   console.log(`📊 Аналитика API: /api/analytics`);
