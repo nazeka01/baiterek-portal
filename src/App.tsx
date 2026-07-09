@@ -15,6 +15,38 @@ const getJsonAuthHeaders = (tok?: string | null): Record<string, string> => ({
   ...getAuthHeaders(tok),
 });
 
+// ---- ICON SYSTEM (inline SVG, Lucide-style, themeable via currentColor) ----
+const ICON_PATHS: Record<string, string> = {
+  // support directions
+  credit: '<line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/>',
+  subsidy: '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+  leasing: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  guarantee: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  insurance: '<path d="M12 22v-8"/><path d="M2 12a10 10 0 0 1 20 0Z"/><path d="M12 14a2 2 0 0 0 4 0"/><path d="M8 14a2 2 0 0 0 4 0"/>',
+  invest: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  // business segments
+  store: '<path d="m2 7 4.4-4.4A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  factory: '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>',
+  agro: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  builder: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  house: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .7-1.5l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  // quick access
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+  calc: '<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/>',
+  book: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  // AI assistant
+  sparkles: '<path d="M9.94 14.06A2 2 0 0 0 8.5 12.63l-5.4-1.4a.5.5 0 0 1 0-.96l5.4-1.4A2 2 0 0 0 9.94 7.4l1.4-5.4a.5.5 0 0 1 .96 0l1.4 5.4a2 2 0 0 0 1.44 1.44l5.4 1.4a.5.5 0 0 1 0 .96l-5.4 1.4a2 2 0 0 0-1.44 1.44l-1.4 5.4a.5.5 0 0 1-.96 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>',
+  close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+};
+const Icon: React.FC<{ name: string; size?: number; strokeWidth?: number; style?: React.CSSProperties; className?: string }> = ({ name, size = 24, strokeWidth = 2, style, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth}
+    strokeLinecap="round" strokeLinejoin="round" style={style} className={className} aria-hidden="true"
+    dangerouslySetInnerHTML={{ __html: ICON_PATHS[name] || '' }} />
+);
+
 // ---- TYPES & INTERFACES ----
 type Screen =
   | 'home'
@@ -605,12 +637,12 @@ const ORGANIZATIONS = [
 
 // ---- SUPPORT DIRECTIONS (categories) META ----
 const CAT_META: Record<string, { badge: string; ru: string; kz: string; ruShort: string; kzShort: string; icon: string }> = {
-  credit:    { badge: 'badge-navy',  ru: 'Кредитование',   kz: 'Несиелеу',      ruShort: 'Кредиты',     kzShort: 'Несие',      icon: '🏦' },
-  subsidy:   { badge: 'badge-green', ru: 'Субсидирование', kz: 'Субсидиялау',   ruShort: 'Субсидии',    kzShort: 'Субсидия',   icon: '📉' },
-  leasing:   { badge: 'badge-gold',  ru: 'Лизинг',         kz: 'Лизинг',        ruShort: 'Лизинг',      kzShort: 'Лизинг',     icon: '🚆' },
-  guarantee: { badge: 'badge-amber', ru: 'Гарантирование', kz: 'Кепілдендіру',  ruShort: 'Гарантия',    kzShort: 'Кепілдік',   icon: '🛡️' },
-  insurance: { badge: 'badge-gray',  ru: 'Страхование',    kz: 'Сақтандыру',    ruShort: 'Страхование', kzShort: 'Сақтандыру', icon: '📑' },
-  invest:    { badge: 'badge-blue',  ru: 'Инвестирование', kz: 'Инвестициялау', ruShort: 'Инвестиции',  kzShort: 'Инвестиция', icon: '📈' },
+  credit:    { badge: 'badge-navy',  ru: 'Кредитование',   kz: 'Несиелеу',      ruShort: 'Кредиты',     kzShort: 'Несие',      icon: 'credit' },
+  subsidy:   { badge: 'badge-green', ru: 'Субсидирование', kz: 'Субсидиялау',   ruShort: 'Субсидии',    kzShort: 'Субсидия',   icon: 'subsidy' },
+  leasing:   { badge: 'badge-gold',  ru: 'Лизинг',         kz: 'Лизинг',        ruShort: 'Лизинг',      kzShort: 'Лизинг',     icon: 'leasing' },
+  guarantee: { badge: 'badge-amber', ru: 'Гарантирование', kz: 'Кепілдендіру',  ruShort: 'Гарантия',    kzShort: 'Кепілдік',   icon: 'guarantee' },
+  insurance: { badge: 'badge-gray',  ru: 'Страхование',    kz: 'Сақтандыру',    ruShort: 'Страхование', kzShort: 'Сақтандыру', icon: 'insurance' },
+  invest:    { badge: 'badge-blue',  ru: 'Инвестирование', kz: 'Инвестициялау', ruShort: 'Инвестиции',  kzShort: 'Инвестиция', icon: 'invest' },
 };
 const DIRECTION_ORDER = ['credit', 'subsidy', 'leasing', 'guarantee', 'insurance', 'invest'];
 const catBadge = (c: string) => CAT_META[c]?.badge || 'badge-gray';
@@ -639,13 +671,13 @@ const SERVICE_STATS: Record<string, { amount: string; term: string; rate: string
 
 // ---- BUSINESS SEGMENTS (persona navigation) ----
 const SEGMENTS: { key: string; ru: string; kz: string; icon: string; orgAbbr: string }[] = [
-  { key: 'msb',      ru: 'Малый и средний бизнес', kz: 'Шағын және орта бизнес', icon: '🏪', orgAbbr: 'Даму' },
-  { key: 'export',   ru: 'Экспортёры',             kz: 'Экспорттаушылар',        icon: '🌍', orgAbbr: 'ЭКА' },
-  { key: 'industry', ru: 'Промышленность',         kz: 'Өнеркәсіп',              icon: '🏭', orgAbbr: 'БРК' },
-  { key: 'agro',     ru: 'Аграрии',                kz: 'Аграрийлер',             icon: '🌾', orgAbbr: 'АКК' },
-  { key: 'builder',  ru: 'Застройщики',            kz: 'Құрылыс салушылар',      icon: '🏗️', orgAbbr: 'КЖК' },
-  { key: 'housing',  ru: 'Жильё для населения',    kz: 'Халыққа тұрғын үй',      icon: '🏠', orgAbbr: 'Отбасы' },
-  { key: 'invest',   ru: 'Инвестпроекты',          kz: 'Инвестжобалар',          icon: '💡', orgAbbr: 'QIC' },
+  { key: 'msb',      ru: 'Малый и средний бизнес', kz: 'Шағын және орта бизнес', icon: 'store', orgAbbr: 'Даму' },
+  { key: 'export',   ru: 'Экспортёры',             kz: 'Экспорттаушылар',        icon: 'globe', orgAbbr: 'ЭКА' },
+  { key: 'industry', ru: 'Промышленность',         kz: 'Өнеркәсіп',              icon: 'factory', orgAbbr: 'БРК' },
+  { key: 'agro',     ru: 'Аграрии',                kz: 'Аграрийлер',             icon: 'agro', orgAbbr: 'АКК' },
+  { key: 'builder',  ru: 'Застройщики',            kz: 'Құрылыс салушылар',      icon: 'builder', orgAbbr: 'КЖК' },
+  { key: 'housing',  ru: 'Жильё для населения',    kz: 'Халыққа тұрғын үй',      icon: 'house', orgAbbr: 'Отбасы' },
+  { key: 'invest',   ru: 'Инвестпроекты',          kz: 'Инвестжобалар',          icon: 'bulb', orgAbbr: 'QIC' },
 ];
 
 // ---- EMBEDDED FALLBACK CONTENT (shown when backend API is unavailable, e.g. static deploy) ----
@@ -2200,7 +2232,7 @@ const HomePage: React.FC<{
             const m = CAT_META[c];
             return (
               <button key={c} className="direction-tile" onClick={() => onGoCatalog(c)}>
-                <span className="direction-icon">{m.icon}</span>
+                <span className="direction-icon"><Icon name={m.icon} size={24} /></span>
                 <span className="direction-name">{lang === 'ru' ? m.ru : m.kz}</span>
                 <span className="direction-count">{catCount(c)} {lang === 'ru' ? 'услуг' : 'қызмет'}</span>
               </button>
@@ -2223,7 +2255,7 @@ const HomePage: React.FC<{
               const org = ORGANIZATIONS.find(o => o.abbr === seg.orgAbbr);
               if (org) onSelectOrg(org);
             }}>
-              <span className="segment-icon">{seg.icon}</span>
+              <span className="segment-icon"><Icon name={seg.icon} size={22} /></span>
               <span className="segment-label">{lang === 'ru' ? seg.ru : seg.kz}</span>
               <span className="segment-arrow">→</span>
             </button>
@@ -2316,16 +2348,16 @@ const HomePage: React.FC<{
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 12 }}>
           {[
-            { icon: '📋', label: lang === 'ru' ? 'Подать заявку' : 'Өтінім беру', action: () => onGoCatalog() },
-            { icon: '🧮', label: lang === 'ru' ? 'Смета расходов' : 'Шығын сметасы', action: onLogin },
-            { icon: '📚', label: lang === 'ru' ? 'База знаний' : 'Білім базасы', action: onGoKnowledge },
-            { icon: '📞', label: lang === 'ru' ? 'Горячая линия 1408' : 'Қоңырау орталығы 1408', action: () => { window.location.href = 'tel:1408'; } },
+            { icon: 'file', label: lang === 'ru' ? 'Подать заявку' : 'Өтінім беру', action: () => onGoCatalog() },
+            { icon: 'calc', label: lang === 'ru' ? 'Смета расходов' : 'Шығын сметасы', action: onLogin },
+            { icon: 'book', label: lang === 'ru' ? 'База знаний' : 'Білім базасы', action: onGoKnowledge },
+            { icon: 'phone', label: lang === 'ru' ? 'Горячая линия 1408' : 'Қоңырау орталығы 1408', action: () => { window.location.href = 'tel:1408'; } },
           ].map((item, i) => (
-            <div key={i} className="bt-card" style={{ display: 'flex', alignItems: 'center', gap: 13, cursor: 'pointer', padding: '16px 20px', transition: 'all 0.18s ease' }}
+            <div key={i} className="bt-card quick-card" style={{ display: 'flex', alignItems: 'center', gap: 13, cursor: 'pointer', padding: '16px 20px', transition: 'all 0.18s ease' }}
               onClick={item.action}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; }}>
-              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <span className="quick-card-icon"><Icon name={item.icon} size={22} /></span>
               <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink-900)' }}>{item.label}</span>
             </div>
           ))}
@@ -6068,9 +6100,9 @@ const AIAssistant: React.FC<{ lang: string }> = ({ lang }) => {
         onClick={() => setIsOpen(o => !o)}
         title={lang === 'kz' ? 'AI Көмекшісі' : 'AI Помощник'}
       >
-        <span className="ai-float-icon">{isOpen ? '✕' : '🤖'}</span>
+        <span className="ai-float-icon">{isOpen ? <Icon name="close" size={22} /> : <Icon name="sparkles" size={24} />}</span>
         {!isOpen && (
-          <span className="ai-float-label">{lang === 'kz' ? 'AI' : 'AI'}</span>
+          <span className="ai-float-label">AI</span>
         )}
         {hasUnread && !isOpen && <span className="ai-float-badge" />}
       </button>
