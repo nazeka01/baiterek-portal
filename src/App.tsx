@@ -2200,6 +2200,24 @@ const HomePage: React.FC<{
         </div>
       </div>
 
+      {/* ---- OPERATORS ---- */}
+      <div className="section" style={{ paddingTop: 0 }}>
+        <div className="section-header">
+          <div>
+            <div className="section-title">{lang === 'ru' ? 'Операторы мер поддержки' : 'Қолдау шараларының операторлары'}</div>
+            <div className="section-sub">{lang === 'ru' ? 'Дочерние организации, предоставляющие услуги на портале' : 'Порталда қызмет көрсететін еншілес ұйымдар'}</div>
+          </div>
+        </div>
+        <div className="operators-strip">
+          {ORGANIZATIONS.map(o => (
+            <button key={o.abbr} className="operator-logo" onClick={() => onSelectOrg(o)} title={lang === 'ru' ? o.name : o.nameKz}>
+              <img src="/logo.png" alt="" />
+              <span>{lang === 'ru' ? o.name : o.nameKz}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ---- FOOTER ---- */}
       <footer className="site-footer">
         <div className="footer-grid">
@@ -3052,36 +3070,63 @@ const CatalogPage: React.FC<{
 
 // ---- SERVICE DETAIL ----
 const ServicePage: React.FC<{ svc: Service; lang: string; onApply: () => void }> = ({ svc, lang, onApply }) => {
+  const ru = lang === 'ru';
+  const stats = SERVICE_STATS[svc.title];
+  const [fav, setFav] = useState(false);
+  const doApply = svc.stage === 2
+    ? () => { alert(ru ? 'Внимание: Подача на II этап требует наличия одобренной заявки первого этапа!' : 'Назар аударыңыз: II кезеңге өтінім беру үшін бірінші кезеңнің мақұлданған өтінімі болуы қажет!'); onApply(); }
+    : onApply;
+
   return (
     <div>
       <div className="service-hero">
-        <span className="badge badge-blue">{svc.org}{svc.stage ? ` · Этап ${svc.stage}` : ''}</span>
-        <h1 className="service-hero-title">{lang === 'ru' ? svc.title : svc.titleKz || svc.title}</h1>
-        <p className="service-hero-desc">{lang === 'ru' ? svc.desc : svc.descKz || svc.desc}</p>
-        <button 
-          className="btn btn-gold" 
-          onClick={svc.stage === 2 ? () => { 
-            alert(lang === 'ru' ? 'Внимание: Подача на II Этап требует наличия одобренной заявки первого этапа!' : 'Назар аударыңыз: II кезеңге өтінім беру үшін бірінші кезеңнің мақұлданған өтінімі болуы қажет!'); 
-            onApply(); 
-          } : onApply}
-        >
-          📝 {lang === 'ru' ? 'Подать заявку онлайн' : 'Өтінімді онлайн беру'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+          <span className="badge badge-gold">{svc.org}</span>
+          <span className={`badge ${catBadge(svc.cat)}`}>{catLabel(svc.cat, lang)}</span>
+          {svc.stage && <span className="badge badge-gray" style={{ background: 'rgba(255,255,255,0.14)', color: '#fff' }}>{ru ? `Этап ${svc.stage}` : `${svc.stage}-кезең`}</span>}
+        </div>
+        <h1 className="service-hero-title">{ru ? svc.title : svc.titleKz || svc.title}</h1>
+        <p className="service-hero-desc">{ru ? svc.desc : svc.descKz || svc.desc}</p>
       </div>
-      <div className="service-detail-grid">
-        <div className="detail-card">
-          <h3>{lang === 'ru' ? 'Условия получения' : 'Алу шарттары'}</h3>
-          <ul>{lang === 'ru' ? svc.conds.map((c, i) => <li key={i}>{c}</li>) : (svc.condsKz || svc.conds).map((c, i) => <li key={i}>{c}</li>)}</ul>
+
+      <div className="service-detail-layout">
+        <div className="service-detail-main">
+          <div className="detail-card">
+            <h3>{ru ? 'Условия получения' : 'Алу шарттары'}</h3>
+            <ul>{(ru ? svc.conds : (svc.condsKz || svc.conds)).map((c, i) => <li key={i}>{c}</li>)}</ul>
+          </div>
+          <div className="detail-card">
+            <h3>{ru ? 'Необходимые документы' : 'Қажетті құжаттар'}</h3>
+            <ul>{(ru ? svc.docs : (svc.docsKz || svc.docs)).map((d, i) => <li key={i}>{d}</li>)}</ul>
+          </div>
+          <div className="detail-card">
+            <h3>{ru ? 'Результат оказания услуги' : 'Қызмет көрсету нәтижесі'}</h3>
+            <p className="detail-result">{svc.result}</p>
+          </div>
         </div>
-        <div className="detail-card">
-          <h3>{lang === 'ru' ? 'Необходимые документы' : 'Қажетті құжаттар'}</h3>
-          <ul>{lang === 'ru' ? svc.docs.map((d, i) => <li key={i}>{d}</li>) : (svc.docsKz || svc.docs).map((d, i) => <li key={i}>{d}</li>)}</ul>
-        </div>
-        <div className="meta-grid">
-          <div className="meta-box"><div className="meta-box-label">{lang === 'ru' ? 'Срок рассмотрения' : 'Қарау мерзімі'}</div><div className="meta-box-value">{svc.dur}</div></div>
-          <div className="meta-box"><div className="meta-box-label">{lang === 'ru' ? 'Результат' : 'Нәтиже'}</div><div className="meta-box-value" style={{ fontSize: 12 }}>{svc.result}</div></div>
-          <div className="meta-box"><div className="meta-box-label">{lang === 'ru' ? 'Электронная форма' : 'Электрондық форма'}</div><div className="meta-box-value" style={{ color: 'var(--success)' }}>100% {lang === 'ru' ? 'Онлайн' : 'Онлайн'}</div></div>
-        </div>
+
+        <aside className="service-sticky">
+          <div className="sticky-card">
+            <div className="sticky-stats">
+              {stats && <div className="sticky-stat"><span>{ru ? 'Сумма' : 'Сомасы'}</span><b>{stats.amount}</b></div>}
+              {stats && <div className="sticky-stat"><span>{ru ? 'Срок' : 'Мерзімі'}</span><b>{stats.term}</b></div>}
+              {stats && <div className="sticky-stat"><span>{ru ? (stats.rateLabelRu || 'Ставка') : (stats.rateLabelKz || 'Мөлшерлеме')}</span><b>{stats.rate}</b></div>}
+              <div className="sticky-stat"><span>{ru ? 'Рассмотрение' : 'Қарау'}</span><b>{svc.dur}</b></div>
+              <div className="sticky-stat"><span>{ru ? 'Форма' : 'Нысаны'}</span><b style={{ color: 'var(--success)' }}>100% {ru ? 'онлайн' : 'онлайн'}</b></div>
+            </div>
+            <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={doApply}>
+              📝 {ru ? 'Подать заявку онлайн' : 'Өтінімді онлайн беру'}
+            </button>
+            <button className="btn btn-secondary" style={{ width: '100%', marginTop: 8 }} onClick={() => setFav(f => !f)}>
+              {fav ? '★ ' : '☆ '}{ru ? (fav ? 'В избранном' : 'В избранное') : (fav ? 'Таңдаулыда' : 'Таңдаулыға')}
+            </button>
+          </div>
+          <div className="sticky-consult">
+            <div className="sticky-consult-title">{ru ? 'Нужна консультация?' : 'Кеңес керек пе?'}</div>
+            <div className="sticky-consult-text">{ru ? 'Специалисты института развития помогут подобрать меру поддержки.' : 'Даму институтының мамандары қолдау шарасын таңдауға көмектеседі.'}</div>
+            <a className="sticky-consult-phone" href="tel:1414">📞 1414</a>
+          </div>
+        </aside>
       </div>
     </div>
   );
