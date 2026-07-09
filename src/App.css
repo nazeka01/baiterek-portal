@@ -491,10 +491,6 @@ html,body,#root{
   margin-bottom:16px;
   display:flex;align-items:center;gap:8px;
 }
-.hero-eyebrow::before{
-  content:'';width:24px;height:2px;
-  background:var(--bt-gold-400);border-radius:2px;
-}
 .hero-title{
   font-size:44px;font-weight:800;color:white;
   line-height:1.12;margin-bottom:16px;
