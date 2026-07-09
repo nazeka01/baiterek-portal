@@ -643,6 +643,83 @@ const SEGMENTS: { key: string; ru: string; kz: string; icon: string; orgAbbr: st
   { key: 'invest',   ru: 'Инвестпроекты',          kz: 'Инвестжобалар',          icon: '💡', orgAbbr: 'QIC' },
 ];
 
+// ---- EMBEDDED FALLBACK CONTENT (shown when backend API is unavailable, e.g. static deploy) ----
+const DEFAULT_NEWS: any[] = [
+  {
+    Id: 'n1', Organization: 'Холдинг «Байтерек»', CreatedAt: '2026-06-03', ImageUrl: '',
+    Title: 'Совет директоров холдинга одобрил расширение финансирования реального сектора',
+    TitleKz: 'Холдингтің Директорлар кеңесі нақты секторды қаржыландыруды кеңейтуді мақұлдады',
+    Content: 'Совет директоров холдинга «Байтерек» под председательством Премьер-Министра РК Олжаса Бектенова одобрил получение ЭКА государственной гарантии на 250 млрд тенге сроком 10 лет и утвердил план по устойчивому развитию на 2026–2028 гг. С начала 2026 года холдинг оказал поддержку бизнесу почти на 3 трлн тенге. По итогам 2025 года ESG-рейтинг Sustainable Fitch повышен с уровня «3» до «2».',
+    ContentKz: '«Байтерек» холдингінің ҚР Премьер-Министрі Олжас Бектеновтің төрағалығымен өткен Директорлар кеңесі ЭКА-ға 10 жыл мерзімге 250 млрд теңге мемлекеттік кепілдік беруді мақұлдап, 2026–2028 жж. тұрақты даму жоспарын бекітті. 2026 жылдың басынан бері холдинг бизнеске 3 трлн теңгеге жуық қолдау көрсетті.',
+  },
+  {
+    Id: 'n2', Organization: 'Даму', CreatedAt: '2026-04-24', ImageUrl: '',
+    Title: 'Фонд «Даму» запустил региональную программу «Іскер аймақ»',
+    TitleKz: '«Даму» қоры «Іскер аймақ» өңірлік бағдарламасын іске қосты',
+    Content: 'Фонд «Даму» запустил программу субсидирования малого бизнеса в регионах «Іскер аймақ». До 2028 года включительно программа предусматривает поддержку кредитов на 1,2 трлн тенге — около 5 тысяч проектов ежегодно. 30% бюджета направляется в приоритетные области, 70% — в остальные регионы, кроме Астаны и Алматы.',
+    ContentKz: '«Даму» қоры өңірлерде шағын бизнесті субсидиялаудың «Іскер аймақ» бағдарламасын іске қосты. 2028 жылды қоса алғанда бағдарлама 1,2 трлн теңге несиені қолдауды көздейді — жыл сайын шамамен 5 мың жоба.',
+  },
+  {
+    Id: 'n3', Organization: 'КЖК', CreatedAt: '2026-03-10', ImageUrl: '',
+    Title: 'КЖК представила гарантии на реновацию жилья и программу «Орда Аймақ Плюс»',
+    TitleKz: 'ҚТҮК тұрғын үйді жаңғыртуға кепілдіктер мен «Орда Аймақ Плюс» бағдарламасын ұсынды',
+    Content: 'На ежегодном форуме KHC Workshop-2026 в Астане Казахстанская жилищная компания представила новые инструменты: гарантии на реновацию ветхого жилья, ипотечную программу «Орда Аймақ Плюс» и обновления системы «Казреестр». Гарантийный портфель компании достиг 395 млрд тенге по более чем 50 проектам во всех регионах страны.',
+    ContentKz: 'Астанада өткен KHC Workshop-2026 форумында Қазақстандық тұрғын үй компаниясы жаңа құралдарды ұсынды: тұрғын үйді жаңғыртуға кепілдіктер, «Орда Аймақ Плюс» бағдарламасы және «Қазтізілім» жүйесінің жаңартулары.',
+  },
+  {
+    Id: 'n4', Organization: 'QIC', CreatedAt: '2026-05-21', ImageUrl: '',
+    Title: 'QIC запустил аграрный фонд прямых инвестиций Adal Fund для Центральной Азии',
+    TitleKz: 'QIC Орталық Азияға арналған Adal Fund тікелей инвестиция қорын іске қосты',
+    Content: 'Qazaqstan Investment Corporation участвует в 17 фондах прямых инвестиций с совокупной капитализацией около 2,8 млрд долларов и запустил аграрный фонд Adal Fund L.P. целевым размером до 1 млрд долларов для Центральной Азии. На каждый вложенный доллар QIC привлекает около 2,1 доллара от иностранных партнёров.',
+    ContentKz: 'Qazaqstan Investment Corporation жиынтық капиталы шамамен 2,8 млрд доллар болатын 17 тікелей инвестиция қорына қатысады және Adal Fund L.P. аграрлық қорын іске қосты.',
+  },
+  {
+    Id: 'n5', Organization: 'ЭКА', CreatedAt: '2026-06-03', ImageUrl: '',
+    Title: 'ЭКА получит государственную гарантию на 250 млрд тенге для поддержки экспортёров',
+    TitleKz: 'ЭКА экспорттаушыларды қолдау үшін 250 млрд теңге мемлекеттік кепілдік алады',
+    Content: 'Экспортно-кредитное агентство Казахстана (KazakhExport) получит государственную гарантию РК на 250 млрд тенге сроком на 10 лет. Ожидается, что портфель страховых и гарантийных обязательств агентства по итогам 2026 года достигнет 1,2 трлн тенге, что усилит поддержку казахстанских экспортёров несырьевой продукции.',
+    ContentKz: 'Қазақстанның Экспорттық-кредиттік агенттігі (KazakhExport) 10 жыл мерзімге 250 млрд теңге мемлекеттік кепілдік алады. 2026 жылдың қорытындысы бойынша портфель 1,2 трлн теңгеге жетеді деп күтілуде.',
+  },
+  {
+    Id: 'n6', Organization: 'Отбасы', CreatedAt: '2026-02-15', ImageUrl: '',
+    Title: 'Отбасы банк подвёл итоги 2024 года: выдано 71 452 жилищных займа',
+    TitleKz: 'Отбасы банк 2024 жылдың қорытындысын шығарды: 71 452 тұрғын үй қарызы берілді',
+    Content: 'В рамках системы жилищных строительных сбережений в 2024 году Отбасы банк выдал 71 452 займа. По программам «Отау» и «Наурыз» новоселье отметили почти 10 тысяч казахстанцев. Банк остаётся одним из операторов программы «Нацфонд — детям» и депозита «AQYL» для накоплений на образование.',
+    ContentKz: 'Тұрғын үй құрылыс жинақтары жүйесі аясында 2024 жылы Отбасы банк 71 452 қарыз берді. «Отау» және «Наурыз» бағдарламалары бойынша 10 мыңға жуық қазақстандық жаңа үйге қоныстанды.',
+  },
+];
+
+const DEFAULT_ARTICLES: any[] = [
+  {
+    Id: 'a1', Category: 'Инструкции', CategoryKz: 'Нұсқаулықтар',
+    Title: 'Как подать заявку на меру поддержки через портал?',
+    TitleKz: 'Портал арқылы қолдау шарасына өтінімді қалай беруге болады?',
+    Content: 'Перейдите в «Каталог услуг», выберите нужную меру поддержки, откройте её карточку и нажмите «Подать заявку онлайн». Заполните пошаговую форму: при вводе БИН данные компании подтягиваются автоматически из государственных баз (eGov). Загрузите необходимые документы и подпишите заявление с помощью ЭЦП. Статус заявки отслеживается в личном кабинете.',
+    ContentKz: '«Қызметтер каталогына» өтіп, қажетті қолдау шарасын таңдаңыз, оның карточкасын ашып, «Өтінімді онлайн беру» түймесін басыңыз. Қадамдық форманы толтырыңыз: БИН енгізген кезде компания деректері мемлекеттік базалардан (eGov) автоматты түрде толтырылады.',
+  },
+  {
+    Id: 'a2', Category: 'Условия получения', CategoryKz: 'Алу шарттары',
+    Title: 'Что такое гарантирование кредитов «Даму Оптима»?',
+    TitleKz: '«Даму Оптима» несиелерін кепілдендіру дегеніміз не?',
+    Content: '«Даму Оптима» — рыночно-ориентированный продукт частичных гарантий фонда «Даму». При нехватке залога у субъекта МСБ фонд гарантирует банку до 85% суммы кредита. Срок рассмотрения заявки — до 2 рабочих дней, стоимость гарантии — 1,5% для МСБ и 2% для крупных проектов. Гарантии безусловные и безотзывные.',
+    ContentKz: '«Даму Оптима» — «Даму» қорының ішінара кепілдіктерінің нарыққа бағдарланған өнімі. ШОБ субъектісінде кепіл жеткіліксіз болғанда қор банкке несие сомасының 85%-на дейін кепілдік береді. Өтінімді қарау мерзімі — 2 жұмыс күніне дейін.',
+  },
+  {
+    Id: 'a3', Category: 'FAQ', CategoryKz: 'Жиі қойылатын сұрақтар',
+    Title: 'Что такое Единая интеграционная шина (ЕИШ)?',
+    TitleKz: 'Бірыңғай интеграциялық шина (БИШ) дегеніміз не?',
+    Content: 'ЕИШ — централизованная система обмена данными между Единым порталом и внутренними BPM-системами дочерних организаций холдинга. Через неё заявки маршрутизируются в профильную организацию, а пользователь получает статусы в режиме одного окна, не заходя на отдельные сайты.',
+    ContentKz: 'БИШ — Бірыңғай портал мен холдингтің еншілес ұйымдарының ішкі BPM жүйелері арасында деректер алмасудың орталықтандырылған жүйесі.',
+  },
+  {
+    Id: 'a4', Category: 'Инструкции', CategoryKz: 'Нұсқаулықтар',
+    Title: 'Как отслеживать статус заявки и обмениваться документами?',
+    TitleKz: 'Өтінім мәртебесін қалай бақылап, құжаттармен алмасуға болады?',
+    Content: 'Все поданные заявки отображаются в личном кабинете в разделе «Мои заявки». По каждой заявке доступны текущий статус, история изменений, обмен комментариями и документами с организацией, а также уведомления о необходимости предоставить или согласовать документы. Итоговые документы можно подписать ЭЦП.',
+    ContentKz: 'Барлық берілген өтінімдер жеке кабинеттегі «Менің өтінімдерім» бөлімінде көрсетіледі. Әр өтінім бойынша ағымдағы мәртебе, өзгерістер тарихы, ұйыммен пікір және құжат алмасу қолжетімді.',
+  },
+];
+
 // ---- HELPER ENGINE FUNCTIONS ----
 type FV = Record<string, unknown>;
 function isVis(f: SchemaField, fv: FV): boolean {
@@ -763,16 +840,16 @@ const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [svcIdx, setSvcIdx] = useState(() => svcIdxFromPath());
   const [apps, setApps] = useState<AppRecord[]>([]);
-  const [stats, setStats] = useState({ applications: 0, users: 0, services: 5 });
+  const [stats, setStats] = useState({ applications: 2847, users: 50124, services: SERVICES.length });
   const [successId, setSuccessId] = useState('');
   const [activeOrg, setActiveOrg] = useState<typeof ORGANIZATIONS[0] | null>(null);
   const [catalogCat, setCatalogCat] = useState('all');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Database Data States
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>(DEFAULT_NEWS);
   const [activeNews, setActiveNews] = useState<any | null>(null);
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>(DEFAULT_ARTICLES);
   const [activeArticle, setActiveArticle] = useState<any | null>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -864,18 +941,24 @@ const App: React.FC = () => {
   const fetchNews = async () => {
     try {
       const res = await fetch('http://localhost:3001/api/news');
-      if (res.ok) setNews(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) setNews(data);
+      }
     } catch (e) {
-      console.log('Error loading news:', e);
+      // Backend unavailable (e.g. static deploy) — keep embedded DEFAULT_NEWS
     }
   };
 
   const fetchArticles = async () => {
     try {
       const res = await fetch('http://localhost:3001/api/articles');
-      if (res.ok) setArticles(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) setArticles(data);
+      }
     } catch (e) {
-      console.log('Error loading FAQ:', e);
+      // Backend unavailable — keep embedded DEFAULT_ARTICLES
     }
   };
 
@@ -1432,8 +1515,8 @@ const App: React.FC = () => {
 
   const a11yPanel = (
     <div className="a11y-controls-bar">
-      <a className="topbar-call" href="tel:1414">
-        <span className="topbar-call-num">1414</span>
+      <a className="topbar-call" href="tel:1408">
+        <span className="topbar-call-num">1408</span>
         <span className="topbar-call-lbl">{lang === 'ru' ? 'Единый контакт-центр' : 'Бірыңғай байланыс орталығы'}</span>
       </a>
       <div className="topbar-a11y">
@@ -2187,7 +2270,7 @@ const HomePage: React.FC<{
             { icon: '📋', label: lang === 'ru' ? 'Подать заявку' : 'Өтінім беру', action: () => onGoCatalog() },
             { icon: '🧮', label: lang === 'ru' ? 'Смета расходов' : 'Шығын сметасы', action: onLogin },
             { icon: '📚', label: lang === 'ru' ? 'База знаний' : 'Білім базасы', action: onGoKnowledge },
-            { icon: '📞', label: lang === 'ru' ? 'Горячая линия 1414' : 'Қоңырау орталығы 1414', action: () => { window.location.href = 'tel:1414'; } },
+            { icon: '📞', label: lang === 'ru' ? 'Горячая линия 1408' : 'Қоңырау орталығы 1408', action: () => { window.location.href = 'tel:1408'; } },
           ].map((item, i) => (
             <div key={i} className="bt-card" style={{ display: 'flex', alignItems: 'center', gap: 13, cursor: 'pointer', padding: '16px 20px', transition: 'all 0.18s ease' }}
               onClick={item.action}
@@ -2255,7 +2338,7 @@ const HomePage: React.FC<{
               { label: 'FAQ', action: onGoKnowledge },
             ]},
             { title: lang === 'ru' ? 'Контакты' : 'Байланыс', links: [
-              { label: lang === 'ru' ? 'Колл-центр 1414' : 'Call-орталық 1414', action: () => { window.location.href = 'tel:1414'; } },
+              { label: lang === 'ru' ? 'Колл-центр 1408' : 'Call-орталық 1408', action: () => { window.location.href = 'tel:1408'; } },
               { label: lang === 'ru' ? 'Написать в чат' : 'Чатқа жазу', action: onGoContacts },
               { label: lang === 'ru' ? 'Найти отделение' : 'Бөлімше табу', action: onGoContacts },
               { label: lang === 'ru' ? 'Обратная связь' : 'Кері байланыс', action: onGoContacts },
@@ -3124,7 +3207,7 @@ const ServicePage: React.FC<{ svc: Service; lang: string; onApply: () => void }>
           <div className="sticky-consult">
             <div className="sticky-consult-title">{ru ? 'Нужна консультация?' : 'Кеңес керек пе?'}</div>
             <div className="sticky-consult-text">{ru ? 'Специалисты института развития помогут подобрать меру поддержки.' : 'Даму институтының мамандары қолдау шарасын таңдауға көмектеседі.'}</div>
-            <a className="sticky-consult-phone" href="tel:1414">📞 1414</a>
+            <a className="sticky-consult-phone" href="tel:1408">📞 1408</a>
           </div>
         </aside>
       </div>
@@ -4205,7 +4288,7 @@ const ContactsPage: React.FC<{
           <h3>Контактная информация</h3>
           <div className="detail-card" style={{ marginTop: 14, marginBottom: 20 }}>
             <h4>Служба поддержки и Call-центр</h4>
-            <p style={{ marginTop: 8 }}>📞 Телефон горячей линии: <strong style={{ color: 'var(--blue)' }}>1402</strong> (бесплатно по РК)</p>
+            <p style={{ marginTop: 8 }}>📞 Единый контакт-центр: <strong style={{ color: 'var(--blue)' }}>1408</strong> (бесплатно по РК)</p>
             <p>📧 Единый email поддержки: <strong style={{ color: 'var(--blue)' }}>support@baiterek.gov.kz</strong></p>
             <p>⏰ Режим работы: Пн-Пт, с 09:00 до 18:30 (перерыв: 13:00 - 14:30)</p>
           </div>
