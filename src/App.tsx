@@ -903,6 +903,7 @@ const AppShell: React.FC<{ ctx: any; children: React.ReactNode; nav?: React.Reac
   const { a11yPanel, t, go, setMobileMenuOpen, langSwitcher, user, notificationBellCount, notifBadgeLabel, mobileMenuOpen, lang, screen, onLogout, breadcrumbs } = ctx;
   return (
     <div className="app-layout">
+      <a href="#bt-main" className="skip-link">{lang === 'kz' ? 'Мазмұнға өту' : 'Перейти к содержимому'}</a>
       {a11yPanel}
       <header className="app-header">
         <div className="header-left">
@@ -980,10 +981,10 @@ const AppShell: React.FC<{ ctx: any; children: React.ReactNode; nav?: React.Reac
         </div>
       )}
 
-      <div className="app-main-content">
+      <main className="app-main-content" id="bt-main">
         {breadcrumbs}
         {children}
-      </div>
+      </main>
       <AIAssistant lang={lang} />
     </div>
   );
@@ -1652,7 +1653,7 @@ const App: React.FC = () => {
 
   // Navigation Items Renderer
   const nav = (
-    <div className="main-nav">
+    <nav className="main-nav" aria-label={lang === 'ru' ? 'Основная навигация' : 'Негізгі навигация'}>
       {(['home', 'catalog', 'about', 'news', 'knowledge', 'contacts', 'vacancies'] as Screen[]).map(s => {
         const labels: Record<string, string> = {
           home: t('navHome'),
@@ -1663,13 +1664,14 @@ const App: React.FC = () => {
           contacts: t('navContacts'),
           vacancies: t('navVacancies')
         };
+        const isActive = screen === s || (s === 'news' && screen === 'news_details');
         return (
-          <button key={s} className={`nav-item ${(screen === s || (s === 'news' && screen === 'news_details')) ? 'active' : ''}`} onClick={() => go(s)}>
+          <button key={s} className={`nav-item ${isActive ? 'active' : ''}`} onClick={() => go(s)} aria-current={isActive ? 'page' : undefined}>
             {labels[s]}
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 
   // Right Header Controls
@@ -1708,7 +1710,7 @@ const App: React.FC = () => {
         <>
           {/* Bell Notifications */}
           <div className="notif-bell-wrap" onMouseLeave={() => setIsNotifOpen(false)}>
-            <button className="notif-bell-btn" onClick={() => setIsNotifOpen(!isNotifOpen)}>
+            <button className="notif-bell-btn" onClick={() => setIsNotifOpen(!isNotifOpen)} aria-label={lang === 'ru' ? `Уведомления (${notificationBellCount})` : `Хабарламалар (${notificationBellCount})`} aria-expanded={isNotifOpen}>
               🔔 {notificationBellCount > 0 && <span className="notif-badge">{notifBadgeLabel}</span>}
             </button>
             {isNotifOpen && (
@@ -2572,6 +2574,17 @@ const ORG_FACTS: Record<string, { site: string; audienceRu: string; audienceKz: 
   },
 };
 
+// ---- ORG INTERNATIONAL COOPERATION (ТЗ 4.2.6) ----
+const ORG_INTL: Record<string, { ru: string; kz: string }> = {
+  'БРК': { ru: 'Привлечение внешнего фондирования и участие в международных проектах, включая «зелёную» энергетику.', kz: 'Сыртқы қаржыландыруды тарту және халықаралық жобаларға, соның ішінде «жасыл» энергетикаға қатысу.' },
+  'ЭКА': { ru: 'Продвижение казахстанского несырьевого экспорта на внешние рынки и страхование международных контрактов.', kz: 'Қазақстандық шикізаттық емес экспортты сыртқы нарықтарға ілгерілету және халықаралық келісімшарттарды сақтандыру.' },
+  'QIC': { ru: 'Соинвестирование с иностранными фондами (участие в 17 фондах прямых инвестиций); аграрный фонд Adal Fund для Центральной Азии.', kz: 'Шетелдік қорлармен бірлесіп инвестициялау (17 тікелей инвестиция қорына қатысу); Орталық Азияға арналған Adal Fund аграрлық қоры.' },
+  'Даму': { ru: 'Обмен опытом с международными институтами развития малого и среднего бизнеса.', kz: 'Шағын және орта бизнесті дамытудың халықаралық институттарымен тәжірибе алмасу.' },
+  'Отбасы': { ru: 'Программа «Умай» по гендерному равенству в жилищном финансировании реализуется при участии Азиатского банка развития.', kz: 'Тұрғын үй қаржыландыруындағы гендерлік теңдік бойынша «Умай» бағдарламасы Азия даму банкінің қатысуымен жүзеге асырылады.' },
+  'КЖК': { ru: 'Внедрение международных практик гарантирования долевого строительства и цифровизации рынка жилья.', kz: 'Үлестік құрылысты кепілдендіру мен тұрғын үй нарығын цифрландырудың халықаралық тәжірибелерін енгізу.' },
+  'АКК': { ru: 'Сотрудничество с международными институтами в сфере финансирования и страхования агропромышленного комплекса.', kz: 'Агроөнеркәсіптік кешенді қаржыландыру және сақтандыру саласындағы халықаралық институттармен ынтымақтастық.' },
+};
+
 type OrgTab = 'overview' | 'services' | 'reports' | 'procurement' | 'contacts';
 
 const OrgDetailsPage: React.FC<{
@@ -2671,6 +2684,13 @@ const OrgDetailsPage: React.FC<{
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {ORG_INTL[org.abbr] && (
+                <div className="detail-card" style={{ borderLeft: '4px solid var(--bt-gold-500)' }}>
+                  <h3>{ru ? 'Международное сотрудничество' : 'Халықаралық ынтымақтастық'}</h3>
+                  <p style={{ fontSize: 13, color: 'var(--ink-500)', lineHeight: 1.7, margin: 0 }}>{ru ? ORG_INTL[org.abbr].ru : ORG_INTL[org.abbr].kz}</p>
                 </div>
               )}
 
@@ -6006,7 +6026,7 @@ const AIAssistant: React.FC<{ lang: string }> = ({ lang }) => {
                   ↺
                 </button>
               )}
-              <button className="ai-chat-close" onClick={() => setIsOpen(false)}>✕</button>
+              <button className="ai-chat-close" onClick={() => setIsOpen(false)} aria-label={lang === 'kz' ? 'Жабу' : 'Закрыть'}>✕</button>
             </div>
           </div>
 
@@ -6099,6 +6119,8 @@ const AIAssistant: React.FC<{ lang: string }> = ({ lang }) => {
         className={`ai-float-btn ${isOpen ? 'ai-float-btn-open' : ''}`}
         onClick={() => setIsOpen(o => !o)}
         title={lang === 'kz' ? 'AI Көмекшісі' : 'AI Помощник'}
+        aria-label={lang === 'kz' ? 'AI көмекшісін ашу' : 'Открыть ИИ-помощника'}
+        aria-expanded={isOpen}
       >
         <span className="ai-float-icon">{isOpen ? <Icon name="close" size={22} /> : <Icon name="sparkles" size={24} />}</span>
         {!isOpen && (

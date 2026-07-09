@@ -1894,3 +1894,49 @@ html,body,#root{
     height: 54px;
   }
 }
+
+/* ============================================================
+   ACCESSIBILITY (WCAG — ТЗ 4.7): visible focus, skip link, motion
+   ============================================================ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+.nav-item:focus-visible,
+.filter-chip:focus-visible,
+.filter-check:focus-visible,
+.direction-tile:focus-visible,
+.segment-tile:focus-visible,
+.operator-logo:focus-visible,
+.svc-card:focus-visible,
+.org-card:focus-visible,
+.news-item:focus-visible,
+.cat-card:focus-visible{
+  outline:2.5px solid var(--green-600);
+  outline-offset:2px;
+  border-radius:var(--r-6);
+}
+.high-contrast a:focus-visible,
+.high-contrast button:focus-visible{ outline:3px solid #ffff00 !important; }
+
+/* Skip-to-content link */
+.skip-link{
+  position:absolute;left:8px;top:-48px;z-index:2000;
+  background:var(--green-700);color:#fff;
+  padding:9px 16px;border-radius:var(--r-8);
+  font-size:13px;font-weight:700;text-decoration:none;
+  transition:top 0.16s ease;
+}
+.skip-link:focus{ top:8px; outline:2.5px solid var(--bt-gold-500); }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
