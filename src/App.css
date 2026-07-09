@@ -912,6 +912,10 @@ html,body,#root{
   .service-detail-layout{grid-template-columns:1fr}
   .service-sticky{position:static}
 }
+@media (max-width:820px){
+  .org-overview{grid-template-columns:1fr !important}
+  .org-overview aside{position:static !important}
+}
 
 /* ============================================================
    PERSONAL CABINET / DASHBOARD

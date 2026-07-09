@@ -1818,10 +1818,12 @@ const App: React.FC = () => {
   if (screen === 'org_details' && activeOrg) {
     return (
       <CustomLayout nav={nav} hdrRight={hdrRight} onBack={() => go('home')}>
-        <OrgDetailsPage 
-          org={activeOrg} 
+        <OrgDetailsPage
+          org={activeOrg}
           lang={lang}
+          news={news}
           onGoService={(i) => go('service', i)}
+          onSelectNews={(n) => { setActiveNews(n); go('news_details'); }}
           onBookConsultation={() => {
             setBookingOrg(activeOrg.name);
             if (user) go('dash');
@@ -2431,21 +2433,86 @@ const ORG_PROCUREMENTS: Record<string, { num: string; title: string; titleKz: st
   ],
 };
 
-type OrgTab = 'services' | 'reports' | 'procurement' | 'contacts';
+// ---- ORG PROFILE FACTS (site, audience, key indicators) ----
+const ORG_FACTS: Record<string, { site: string; audienceRu: string; audienceKz: string; stats: { label: string; labelKz: string; value: string }[] }> = {
+  'БРК': {
+    site: 'kdb.kz', audienceRu: 'Крупный и средний бизнес, промышленные и инфраструктурные проекты', audienceKz: 'Ірі және орта бизнес, өнеркәсіптік және инфрақұрылымдық жобалар',
+    stats: [
+      { label: 'Сфера', labelKz: 'Сала', value: 'Проектное финансирование' },
+      { label: 'Основание', labelKz: 'Құрылған', value: '2001 г.' },
+      { label: 'Фокус', labelKz: 'Бағыт', value: 'Обрабатывающая пром-ть' },
+    ],
+  },
+  'ЭКА': {
+    site: 'kazakhexport.kz', audienceRu: 'Казахстанские экспортёры несырьевых товаров и услуг', audienceKz: 'Шикізаттық емес тауар мен қызмет экспорттаушылары',
+    stats: [
+      { label: 'Статус', labelKz: 'Мәртебе', value: 'Экспортно-кредитное агентство' },
+      { label: 'Портфель (план 2026)', labelKz: 'Портфель (2026 жоспар)', value: '₸1,2 трлн' },
+      { label: 'Бренд', labelKz: 'Бренд', value: 'KazakhExport' },
+    ],
+  },
+  'QIC': {
+    site: 'qic.kz', audienceRu: 'Крупный и средний бизнес, инвестпроекты в несырьевых секторах', audienceKz: 'Ірі және орта бизнес, шикізаттық емес сектор жобалары',
+    stats: [
+      { label: 'Модель', labelKz: 'Моделі', value: 'Фонд фондов' },
+      { label: 'Фонды прямых инвестиций', labelKz: 'Тікелей инвестиция қорлары', value: '17' },
+      { label: 'Капитализация', labelKz: 'Капитализация', value: '~$2,8 млрд' },
+    ],
+  },
+  'Даму': {
+    site: 'damu.kz', audienceRu: 'Микро-, малый и средний бизнес (МСБ)', audienceKz: 'Микро-, шағын және орта бизнес (ШОБ)',
+    stats: [
+      { label: 'Основание', labelKz: 'Құрылған', value: '1997 г.' },
+      { label: 'Контакт-центр', labelKz: 'Байланыс орталығы', value: '1408' },
+      { label: 'Роль', labelKz: 'Рөлі', value: 'Оператор нацпроекта МСБ' },
+    ],
+  },
+  'Отбасы': {
+    site: 'hcsbk.kz', audienceRu: 'Население: очередники, молодые и многодетные семьи, вкладчики ЖСС', audienceKz: 'Халық: кезектегілер, жас және көпбалалы отбасылар, ТҚЖ салымшылары',
+    stats: [
+      { label: 'Займов в 2024', labelKz: '2024 ж. қарыздар', value: '71 452' },
+      { label: 'Вкладчики ЖСС', labelKz: 'ТҚЖ салымшылары', value: '29,8% ЭАН' },
+      { label: 'Ставка', labelKz: 'Мөлшерлеме', value: '3,5–7%' },
+    ],
+  },
+  'КЖК': {
+    site: 'khc.kz', audienceRu: 'Население и застройщики (долевое строительство, ипотека)', audienceKz: 'Халық және құрылыс салушылар (үлестік құрылыс, ипотека)',
+    stats: [
+      { label: 'Гарантийный портфель', labelKz: 'Кепілдік портфелі', value: '₸395 млрд' },
+      { label: 'Проекты (2017–2026)', labelKz: 'Жобалар (2017–2026)', value: '290 · ₸1,5 трлн' },
+      { label: 'Система', labelKz: 'Жүйе', value: '«Казреестр»' },
+    ],
+  },
+  'АКК': {
+    site: 'agrocredit.kz', audienceRu: 'Агропромышленный комплекс: фермеры, кооперативы, СХТП', audienceKz: 'Агроөнеркәсіптік кешен: фермерлер, кооперативтер, АШТӨ',
+    stats: [
+      { label: 'Основание', labelKz: 'Құрылған', value: '2001 г.' },
+      { label: 'Штат', labelKz: 'Штат', value: '~1000 чел.' },
+      { label: 'Охват', labelKz: 'Қамту', value: 'Каждый 3-й фермер' },
+    ],
+  },
+};
+
+type OrgTab = 'overview' | 'services' | 'reports' | 'procurement' | 'contacts';
 
 const OrgDetailsPage: React.FC<{
   org: typeof ORGANIZATIONS[0];
   lang: string;
+  news?: any[];
   onGoService: (i: number) => void;
+  onSelectNews?: (n: any) => void;
   onBookConsultation: () => void;
-}> = ({ org, lang, onGoService, onBookConsultation }) => {
-  const [tab, setTab] = useState<OrgTab>('services');
+}> = ({ org, lang, news = [], onGoService, onSelectNews, onBookConsultation }) => {
+  const [tab, setTab] = useState<OrgTab>('overview');
   const ru = lang === 'ru';
   const orgServices = SERVICES.filter(s => s.org === org.abbr);
   const reports = ORG_REPORTS[org.abbr] || [];
   const procurements = ORG_PROCUREMENTS[org.abbr] || [];
+  const facts = ORG_FACTS[org.abbr];
+  const orgNews = news.filter(n => n.Organization === org.abbr || (org.abbr === 'ЭКА' && (n.Organization || '').includes('KazakhExport')));
 
   const tabs: { id: OrgTab; label: string; labelKz: string; count?: number }[] = [
+    { id: 'overview', label: 'Обзор', labelKz: 'Шолу' },
     { id: 'services', label: 'Услуги', labelKz: 'Қызметтер', count: orgServices.length },
     { id: 'reports', label: 'Финансовая отчётность', labelKz: 'Қаржылық есептілік', count: reports.length },
     { id: 'procurement', label: 'Закупки', labelKz: 'Сатып алулар', count: procurements.length },
@@ -2498,6 +2565,69 @@ const OrgDetailsPage: React.FC<{
       </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px 0' }}>
+
+        {/* TAB: Overview */}
+        {tab === 'overview' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }} className="org-overview">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="detail-card">
+                <h3>{ru ? 'Об организации' : 'Ұйым туралы'}</h3>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-500)', lineHeight: 1.7, margin: 0 }}>{ru ? org.desc : org.descKz}</p>
+                {facts && (
+                  <p style={{ fontSize: 13, color: 'var(--ink-500)', lineHeight: 1.7, marginTop: 12 }}>
+                    <b style={{ color: 'var(--ink-900)' }}>{ru ? 'Целевая аудитория: ' : 'Мақсатты аудитория: '}</b>
+                    {ru ? facts.audienceRu : facts.audienceKz}
+                  </p>
+                )}
+              </div>
+
+              {facts && (
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink-900)', marginBottom: 12 }}>{ru ? 'Ключевые показатели' : 'Негізгі көрсеткіштер'}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
+                    {facts.stats.map((st, i) => (
+                      <div key={i} className="detail-card" style={{ padding: 16 }}>
+                        <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-400)', fontWeight: 700, marginBottom: 6 }}>{ru ? st.label : st.labelKz}</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--green-700)', letterSpacing: '-0.01em' }}>{st.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {orgNews.length > 0 && (
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink-900)', marginBottom: 12 }}>{ru ? 'Новости организации' : 'Ұйым жаңалықтары'}</h3>
+                  <div className="news-list">
+                    {orgNews.slice(0, 4).map((n) => (
+                      <div className="news-item" key={n.Id} onClick={() => onSelectNews && onSelectNews(n)}>
+                        <div style={{ flex: 1 }}>
+                          <div className="news-title">{ru ? n.Title : n.TitleKz}</div>
+                          <div className="news-meta">{n.Organization}</div>
+                        </div>
+                        <div className="news-date">{new Date(n.CreatedAt).toLocaleDateString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <aside style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 120 }}>
+              <div className="detail-card">
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-400)', fontWeight: 700, marginBottom: 6 }}>{ru ? 'Руководитель' : 'Басшы'}</div>
+                <div style={{ fontWeight: 700, color: 'var(--ink-900)', marginBottom: 14 }}>{org.director}</div>
+                {facts && <>
+                  <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-400)', fontWeight: 700, marginBottom: 6 }}>{ru ? 'Официальный сайт' : 'Ресми сайт'}</div>
+                  <a href={`https://${facts.site}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--green-500)', fontWeight: 700, textDecoration: 'none', display: 'inline-block', marginBottom: 14 }}>{facts.site} ↗</a>
+                </>}
+                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--ink-400)', fontWeight: 700, marginBottom: 6 }}>{ru ? 'Телефон' : 'Телефон'}</div>
+                <div style={{ fontWeight: 700, color: 'var(--ink-900)', marginBottom: 14 }}>{org.phone}</div>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBookConsultation}>📅 {ru ? 'Записаться на консультацию' : 'Кеңеске жазылу'}</button>
+              </div>
+            </aside>
+          </div>
+        )}
 
         {/* TAB: Services */}
         {tab === 'services' && (
